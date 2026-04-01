@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.byh.groupware.domain.approval.mapper.ApprovalMapper">
+
+
+    <select id="selectDraftDocument" resultType="DocumentMaster">
+        SELECT *
+        FROM tbl_document_master limit 1
+    </select>
+
+</mapper>
