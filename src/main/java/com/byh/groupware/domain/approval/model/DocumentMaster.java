@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 @Data
 public class DocumentMaster {
     private String docId;              // 문서번호 (PK)
-    private String docTitle;           // 문서 제목
     private LocalDateTime draftTime;    // 기안 일시
     private String drafterDept;        // 기안 당시 부서 (박제)
     private String approvalFormId;     // 결재 양식 ID (FK)
