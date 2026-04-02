@@ -3,7 +3,7 @@ package com.byh.groupware.domain.company.model;
 import lombok.Data;
 
 @Data
-public class Company {
+public class CompanyVO {
     private String coCode;
     private String coName;
     private String coCeo;

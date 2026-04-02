@@ -5,12 +5,11 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class EndDoc {
+public class ActiveDocVO {
     private String docId;
-    private LocalDateTime completedDate;
-    private LocalDateTime archiveDate;
     private String attachYn;
     private String urgentYn;
+    private LocalDateTime lastModDate;
     private String docTitle;
     private String searchContent;
     private String filePath;

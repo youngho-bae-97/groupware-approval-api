@@ -3,7 +3,7 @@ package com.byh.groupware.domain.approval.model;
 import lombok.Data;
 
 @Data
-public class DocForm {
+public class DocFormVO {
     private String approvalFormId;
     private String approvalFormType;
     private String approvalFormTitle;

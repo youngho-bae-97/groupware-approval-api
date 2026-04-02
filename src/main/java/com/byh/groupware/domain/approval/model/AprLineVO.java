@@ -5,12 +5,12 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class EndAprLine {
-    private String docId;
+public class AprLineVO {
     private int stepSeq;
-    private String approverId;
+    private String docId;
     private String approveType;
     private String approveStatus;
     private String approveReason;
     private LocalDateTime approveDate;
+    private String approverId;
 }

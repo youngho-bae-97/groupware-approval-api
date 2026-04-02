@@ -4,7 +4,7 @@
 <mapper namespace="com.byh.groupware.domain.user.mapper.UserMapper">
 
 
-    <select id="findById" resultType="UserMaster">
+    <select id="findById" resultType="UserMasterVO">
         SELECT
         MEM_ID,
         MEM_NAME,
@@ -16,7 +16,7 @@
         WHERE MEM_ID = #{memId}
     </select>
 
-    <insert id="insertMember" parameterType="UserMaster">
+    <insert id="insertMember" parameterType="UserMasterVO">
         INSERT INTO TBL_USER_MASTER (
         MEM_ID,
         MEM_NAME,

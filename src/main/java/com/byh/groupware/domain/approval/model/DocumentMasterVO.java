@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class DocumentMaster {
+public class DocumentMasterVO {
     private String docId;              // 문서번호 (PK)
     private LocalDateTime draftTime;    // 기안 일시
     private String drafterDept;        // 기안 당시 부서 (박제)

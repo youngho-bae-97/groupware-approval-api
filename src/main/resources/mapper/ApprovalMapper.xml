@@ -4,7 +4,7 @@
 <mapper namespace="com.byh.groupware.domain.approval.mapper.ApprovalMapper">
 
 
-    <select id="selectDraftDocument" resultType="DocumentMaster">
+    <select id="selectDraftDocument" resultType="DocumentMasterVO">
         SELECT *
         FROM tbl_document_master limit 1
     </select>

@@ -1,7 +1,7 @@
 package com.byh.groupware.domain.approval.service;
 
-import com.byh.groupware.domain.approval.model.DocumentMaster;
+import com.byh.groupware.domain.approval.model.DocumentMasterVO;
 
 public interface ApprovalService {
-        DocumentMaster selectDraftDocument();
+        DocumentMasterVO selectDraftDocument();
 }

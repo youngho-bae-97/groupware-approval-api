@@ -1,8 +1,8 @@
 package com.byh.groupware.domain.user.service;
 
-import com.byh.groupware.domain.user.model.UserMaster;
+import com.byh.groupware.domain.user.model.UserMasterVO;
 
 public interface UserService {
-     void register(UserMaster user);
-     UserMaster login(String memId, String rawPassword);
+     void register(UserMasterVO user);
+     UserMasterVO login(String memId, String rawPassword);
 }

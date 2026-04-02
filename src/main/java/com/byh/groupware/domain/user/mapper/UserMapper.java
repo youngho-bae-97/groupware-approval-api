@@ -1,11 +1,11 @@
 package com.byh.groupware.domain.user.mapper;
 
-import com.byh.groupware.domain.user.model.UserMaster;
+import com.byh.groupware.domain.user.model.UserMasterVO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface UserMapper {
-    void insertMember(UserMaster user);
+    void insertMember(UserMasterVO user);
 
-    UserMaster findById(String memId);
+    UserMasterVO findById(String memId);
 }

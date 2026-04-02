@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class StatusMap {
+public class StatusMapVO {
     private String docId;
     private String currStatus;
     private Integer currStep;

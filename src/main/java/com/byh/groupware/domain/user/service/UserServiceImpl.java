@@ -1,7 +1,7 @@
 package com.byh.groupware.domain.user.service;
 
 import com.byh.groupware.domain.user.mapper.UserMapper;
-import com.byh.groupware.domain.user.model.UserMaster;
+import com.byh.groupware.domain.user.model.UserMasterVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void register(UserMaster user) {
+    public void register(UserMasterVO user) {
         // 1. 비밀번호 암호화 (1234 -> $2a$10$...)
         String encodedPw = passwordEncoder.encode(user.getMemPass());
         user.setMemPass(encodedPw);
@@ -27,9 +27,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserMaster login(String memId, String rawPassword) {
+    public UserMasterVO login(String memId, String rawPassword) {
 
-        UserMaster user = userMapper.findById(memId);
+        UserMasterVO user = userMapper.findById(memId);
 
         if (user == null || !passwordEncoder.matches(rawPassword, user.getMemPass())) {
             throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");

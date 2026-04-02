@@ -3,7 +3,7 @@ package com.byh.groupware.domain.user.model;
 import lombok.Data;
 
 @Data
-public class UserMaster {
+public class UserMasterVO {
     private String memId;
     private String memName;
     private String memPass;

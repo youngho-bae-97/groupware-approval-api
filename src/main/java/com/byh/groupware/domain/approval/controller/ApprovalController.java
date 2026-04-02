@@ -14,9 +14,12 @@ public class ApprovalController {
 
     private final ApprovalService approvalService;
 
-    @GetMapping("/test")
+    @GetMapping("/draft")
     public String test(){
         return approvalService.selectDraftDocument().toString();
+
+
+
     }
 
 }
