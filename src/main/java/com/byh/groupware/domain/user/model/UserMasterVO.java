@@ -25,4 +25,6 @@ public class UserMasterVO {
     private String deptCode;
     private String coCode;
     private String useYn;
+
+    private String deptName;
 }

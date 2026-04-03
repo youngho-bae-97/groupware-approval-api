@@ -6,14 +6,17 @@
 
     <select id="findById" resultType="UserMasterVO">
         SELECT
-        MEM_ID,
-        MEM_NAME,
-        MEM_PASS,
-        DEPT_CODE,
-        CO_CODE,
-        USE_YN
-        FROM TBL_USER_MASTER
-        WHERE MEM_ID = #{memId}
+        U.MEM_ID,
+        U.MEM_PASS,
+        U.MEM_NAME,
+        U.JOB_GRADE,
+        U.DEPT_CODE,
+        D.DEPT_NAME,   U.CO_CODE,
+        U.USE_YN
+        FROM TBL_USER_MASTER U
+        LEFT JOIN TBL_DEPT_MASTER D ON U.DEPT_CODE = D.DEPT_CODE
+        WHERE U.MEM_ID = #{memId}
+        AND U.USE_YN = 'Y'
     </select>
 
     <insert id="insertMember" parameterType="UserMasterVO">

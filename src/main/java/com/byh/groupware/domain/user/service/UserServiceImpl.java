@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
     public UserMasterVO login(String memId, String rawPassword) {
 
         UserMasterVO user = userMapper.findById(memId);
-
+        System.out.println("user = " + user);
         if (user == null || !passwordEncoder.matches(rawPassword, user.getMemPass())) {
             throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }

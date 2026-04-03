@@ -4,9 +4,124 @@
 <mapper namespace="com.byh.groupware.domain.approval.mapper.ApprovalMapper">
 
 
-    <select id="selectDraftDocument" resultType="DocumentMasterVO">
-        SELECT *
-        FROM tbl_document_master limit 1
+<!--    <select id="selectDraftDocument" resultType="DocumentMasterVO">-->
+<!--        SELECT *-->
+<!--        FROM tbl_document_master limit 1-->
+<!--    </select>-->
+
+    <select id="generateDocNo" resultType="Integer">
+        SELECT LAST_SEQ
+        FROM TBL_NO_MASTER
+        WHERE YEAR = #{year}
+        AND APPROVAL_FORM_ID = #{formId}
+        FOR UPDATE
     </select>
+
+    <update id="updateLastSeq">
+        UPDATE TBL_NO_MASTER
+        SET LAST_SEQ = LAST_SEQ + 1,
+        UPDATE_DATE = NOW()
+        WHERE YEAR = #{year}
+        AND APPROVAL_FORM_ID = #{formId}
+    </update>
+
+    <insert id="insertDocumentMaster">
+        INSERT INTO TBL_DOCUMENT_MASTER (
+        DOC_ID,
+        DRAFT_TIME,
+        DRAFTER_DEPT,
+        APPROVAL_FORM_ID,
+        SECURITY_LEVEL,
+        PRESERVE_YEAR,
+        ROOT_DOC_ID,
+        VERSION,
+        DRAFTER_ID,
+        DRAFTER_NAME,
+        APPROVAL_FORM_TITLE
+        ) VALUES (
+        #{docId},
+        NOW(),             #{drafterDept},
+        #{approvalFormId},
+        #{securityLevel},
+        #{preserveYear},
+        #{rootDocId},      #{version},
+        #{drafterId},
+        #{drafterName},
+        #{approvalFormTitle}
+        )
+    </insert>
+
+    <insert id="insertActiveDoc">
+        INSERT INTO TBL_ACTIVEDOC (
+        DOC_ID,
+        ATTACH_YN,
+        URGENT_YN,
+        LAST_MOD_DATE,
+        DOC_TITLE,
+        SEARCH_CONTENT,
+        FILE_PATH,
+        FILE_NAME,
+        CONTENT_TYPE
+        ) VALUES (
+        #{docId},
+        #{attachYn},
+        #{urgentYn},
+        NOW(),             #{docTitle},
+        #{docContent},  #{filePath},
+        #{fileName},
+        #{contentType}
+        )
+    </insert>
+
+    <insert id="insertStatusMap">
+        INSERT INTO TBL_STATUS_MAP (
+        DOC_ID,
+        DOC_STATUS,         CURR_STEP,          CURR_APPROVER,      UPDATE_DATE,
+        DOC_TITLE,          DRAFTER,            DRAFTER_DEPT,       CURR_APPROVER_NAME, CURR_APPROVER_DEPT  ) VALUES (
+        #{dto.docId},
+        #{docStatus},
+        #{next.stepSeq},
+        #{next.approverId},
+        NOW(),
+        #{dto.docTitle},
+        #{dto.drafterId},
+        #{dto.drafterDept},
+        #{next.approverName},
+        #{next.approverDept}
+        )
+    </insert>
+
+    <insert id="insertAprLines">
+        INSERT INTO TBL_APRLINE (
+        STEP_SEQ,
+        DOC_ID,
+        APPROVER_ID,
+        APPROVER_NAME,
+        APPROVER_JOB,   APPROVE_TYPE,
+        APPROVE_STATUS,
+        APPROVE_REASON,
+        APPROVE_DATE
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.stepSeq},
+            #{docId},
+            #{item.approverId},
+            #{item.approverName},
+            #{item.approverJob}, #{item.approveType},
+            <choose>
+                <when test="item.stepSeq == 1">'02'</when>
+                <otherwise>'01'</otherwise>
+            </choose>,
+            NULL,
+            <choose>
+                <when test="item.stepSeq == 1">NOW()</when>
+                <otherwise>NULL</otherwise>
+            </choose>
+            )
+        </foreach>
+    </insert>
+
+
 
 </mapper>

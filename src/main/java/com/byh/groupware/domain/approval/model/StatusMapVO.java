@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Data
 public class StatusMapVO {
     private String docId;
-    private String currStatus;
+    private String docStatus;
     private Integer currStep;
     private String currApprover;
     private String currApproverName;

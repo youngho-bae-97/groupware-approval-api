@@ -2,9 +2,18 @@ package com.byh.groupware.domain.approval.dto;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class ApproverInfoDTO {
-    private int stepSeq;          // 결재 순서 (1, 2, 3...)
-    private String approverId;    // 결재자 ID
-    private String approveType;   // 결재 타입 (01:결재, 02:합의 등)
+    private Integer stepSeq;
+    private String docId;
+    private String approverId;
+    private String approverName; // 성명
+    private String approverJob;  // 추가: 직급 (ex: 과장, 차장)
+    private String approveType;
+    private String approveStatus;
+    private String approveReason;
+    private LocalDateTime approveDate;
+    private String approverDept;
 }
