@@ -1,11 +1,14 @@
 package com.byh.groupware.domain.approval.service;
 
 import com.byh.groupware.domain.approval.dto.ApprovalDraftRequestDTO;
+import com.byh.groupware.domain.approval.dto.ApprovalProcessRequestDTO;
 import com.byh.groupware.domain.approval.dto.ApproverInfoDTO;
 import com.byh.groupware.domain.approval.mapper.ApprovalMapper;
 import com.byh.groupware.domain.approval.model.ActiveDocVO;
 import com.byh.groupware.domain.approval.model.DocumentMasterVO;
+import com.byh.groupware.domain.approval.type.ApprovalType;
 import com.byh.groupware.domain.user.model.UserMasterVO;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +16,9 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -22,10 +27,25 @@ public class ApprovalServiceImpl implements ApprovalService {
 
     private final ApprovalMapper approvalMapper;
 
+    private final List<ApprovalAction> actions;
+
+    private final Map<ApprovalType, ApprovalAction> actionMap = new EnumMap<>(ApprovalType.class);
+
+    @PostConstruct
+    public void init() {
+        for (ApprovalAction action : actions) {
+            actionMap.put(action.getActionType(), action);
+        }
+
+    }
+
+
     @Override
     public DocumentMasterVO selectDraftDocument() {
         return approvalMapper.selectDraftDocument();
     }
+
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -85,6 +105,25 @@ public class ApprovalServiceImpl implements ApprovalService {
 
 
         // 메서드 종료 시점에 COMMIT 되며 락 해제 (Transactional)
+    }
+
+    // 결재처리 (복잡한 결재로직은 ApprovalAction인터페이스의 구현클래스에서 처리)
+    @Override
+    public void doProcess(ApprovalProcessRequestDTO approvalProcessRequestDTO, UserMasterVO loginUser) {
+        // DTO객체에 결재자의 정보 매핑 (세션으로부터 꺼내서 사용함)
+        approvalProcessRequestDTO.setProcessorId(loginUser.getMemId());
+        approvalProcessRequestDTO.setProcessorName(loginUser.getMemName());
+        approvalProcessRequestDTO.setProcessorDept(loginUser.getDeptName());
+
+        ApprovalType type = ApprovalType.valueOf(approvalProcessRequestDTO.getApproveType().toUpperCase());
+
+        ApprovalAction action = actionMap.get(type);
+
+        if (action == null) {
+            throw new IllegalArgumentException("지원하지 않는 결재 유형입니다: " + type);
+        }
+
+        action.doProcess(approvalProcessRequestDTO);
     }
 
     private void processInsertMaster(ApprovalDraftRequestDTO approvalDraftRequestDTO) {
@@ -147,7 +186,7 @@ public class ApprovalServiceImpl implements ApprovalService {
 
         // 1. 반복문을 돌며 STEP_SEQ가 2인 '다음 결재자' 찾기
         for (ApproverInfoDTO line : aprLines) {
-            if (line.getStepSeq() == 2) {
+            if (line.getStepSeq() > 1 && !"09".equals(line.getApproveType())) { // 기안자 직후의 결재자여야하는데 그 결재자의 결재유형은 미결이 아니어야됨
                 nextApprover = line;
                 break;
             }
@@ -168,9 +207,25 @@ public class ApprovalServiceImpl implements ApprovalService {
     private void processInsertApprovalLines(ApprovalDraftRequestDTO approvalDraftRequestDTO) {
         List<ApproverInfoDTO> aprLines = approvalDraftRequestDTO.getApprovalLines();
 
+        // 첫 번째 결재자 순번을 찾기 위한 변수 (초기값은 아주 큰 값으로 설정)
+        int firstApproverSeq = Integer.MAX_VALUE;
+
+        for (ApproverInfoDTO line : aprLines) {
+            // 1. 기안자(1번)는 제외
+            // 2. 결재 유형이 '02(결재)'인 경우만 체크
+            if (line.getStepSeq() > 1 && "02".equals(line.getApproveType())) {
+
+                // 그중 가장 작은(빠른) 순번을 찾음
+                if (line.getStepSeq() < firstApproverSeq) {
+                    firstApproverSeq = line.getStepSeq();
+                }
+            }
+        }
+
+
         if (aprLines != null && !aprLines.isEmpty()) {
 
-            approvalMapper.insertAprLines(aprLines, approvalDraftRequestDTO.getDocId());
+            approvalMapper.insertAprLines(aprLines, approvalDraftRequestDTO.getDocId(),firstApproverSeq);
         } else {
             // 결재선이 없으면 기안이 불가능하므로 예외 처리
             throw new RuntimeException("결재선 정보가 없습니다. 결재자를 지정해주세요.");

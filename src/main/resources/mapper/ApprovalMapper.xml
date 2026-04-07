@@ -77,7 +77,7 @@
         INSERT INTO TBL_STATUS_MAP (
         DOC_ID,
         DOC_STATUS,         CURR_STEP,          CURR_APPROVER,      UPDATE_DATE,
-        DOC_TITLE,          DRAFTER,            DRAFTER_DEPT,       CURR_APPROVER_NAME, CURR_APPROVER_DEPT  ) VALUES (
+        DOC_TITLE,          DRAFTER,            DRAFTER_DEPT,       CURR_APPROVER_NAME, CURR_APPROVER_DEPT, CURR_APPROVER_DEPT_ID  ) VALUES (
         #{dto.docId},
         #{docStatus},
         #{next.stepSeq},
@@ -87,7 +87,8 @@
         #{dto.drafterId},
         #{dto.drafterDept},
         #{next.approverName},
-        #{next.approverDept}
+        #{next.approverDeptName},
+        #{next.approverDeptId}
         )
     </insert>
 
@@ -97,7 +98,7 @@
         DOC_ID,
         APPROVER_ID,
         APPROVER_NAME,
-        APPROVER_JOB,   APPROVE_TYPE,
+        APPROVER_JOB,   APPROVE_TYPE, APPROVER_DEPT_ID, APPROVER_DEPT_NAME,
         APPROVE_STATUS,
         APPROVE_REASON,
         APPROVE_DATE
@@ -108,9 +109,10 @@
             #{docId},
             #{item.approverId},
             #{item.approverName},
-            #{item.approverJob}, #{item.approveType},
+            #{item.approverJob}, #{item.approveType}, #{item.approverDeptId}, #{item.approverDeptName},
             <choose>
-                <when test="item.stepSeq == 1">'02'</when>
+                <when test="item.stepSeq == 1">'03'</when>
+                <when test="item.stepSeq == firstApproverSeq and item.approveType == '02'">'02'</when>
                 <otherwise>'01'</otherwise>
             </choose>,
             NULL,
@@ -122,6 +124,153 @@
         </foreach>
     </insert>
 
+    <select id="selectStatusForUpdate" resultType="StatusMapVO">
+        SELECT
+        DOC_ID,
+        DOC_STATUS,
+        CURR_STEP,
+        CURR_APPROVER,
+        UPDATE_DATE,
+        DOC_TITLE,
+        DRAFTER,
+        DRAFTER_DEPT,
+        CURR_APPROVER_NAME,
+        CURR_APPROVER_DEPT,
+        CURR_APPROVER_DEPT_ID
+        FROM TBL_STATUS_MAP
+        WHERE DOC_ID = #{docId}
+        FOR UPDATE
+    </select>
 
+    <select id="checkApproverAuthority" resultType="int">
+        SELECT COUNT(*)
+        FROM TBL_APRLINE
+        WHERE DOC_ID = #{docId}
+        AND APPROVER_ID = #{processorId}
+        AND APPROVE_STATUS = '02'
+        AND APPROVE_TYPE IN ('02', '03')
+    </select>
+
+    <select id="isFinalApprover" resultType="boolean">
+        SELECT
+        CASE WHEN COUNT(*) = 0 THEN 1 ELSE 0 END
+        FROM TBL_APRLINE
+        WHERE DOC_ID = #{docId}
+        AND STEP_SEQ > (
+        SELECT STEP_SEQ
+        FROM TBL_APRLINE
+        WHERE DOC_ID = #{docId}
+        AND APPROVER_ID = #{processorId}
+        )
+        AND APPROVE_TYPE = '02'
+    </select>
+
+    <select id="selectNextApprover" resultType="AprLineVO">
+        SELECT
+        STEP_SEQ,
+        DOC_ID,
+        APPROVER_ID,
+        APPROVER_NAME,
+        APPROVER_JOB,
+        APPROVER_DEPT_ID,
+        APPROVER_DEPT_NAME,
+        APPROVE_TYPE,
+        APPROVE_STATUS
+        FROM TBL_APRLINE
+        WHERE DOC_ID = #{dto.docId}
+        <choose>
+            <when test="isFinal">
+                AND APPROVER_ID = #{dto.processorId}
+                AND APPROVE_STATUS = '02'
+            </when>
+            <otherwise>
+                <![CDATA[
+            AND STEP_SEQ > (
+                            SELECT STEP_SEQ
+                            FROM TBL_APRLINE
+                            WHERE DOC_ID = #{dto.docId}
+                            AND APPROVER_ID = #{dto.processorId}
+                            )
+            AND APPROVE_STATUS = '01'
+            AND APPROVE_TYPE <> '09'
+            ]]>
+                ORDER BY STEP_SEQ ASC
+                LIMIT 1
+            </otherwise>
+        </choose>
+    </select>
+
+    <update id="updateStatusMap">
+        UPDATE TBL_STATUS_MAP
+        SET
+        DOC_STATUS = #{docStatus},
+        UPDATE_DATE = NOW(),
+        CURR_STEP = #{dto.currApprover.stepSeq},
+        CURR_APPROVER = #{dto.currApprover.approverId},
+        CURR_APPROVER_NAME = #{dto.currApprover.approverName},
+        CURR_APPROVER_DEPT_ID = #{dto.currApprover.approverDeptId},
+        CURR_APPROVER_DEPT = #{dto.currApprover.approverDeptName}
+        WHERE DOC_ID = #{dto.docId}
+    </update>
+
+    <update id="updateCurrentApproverStatus">
+        UPDATE TBL_APRLINE
+        SET
+        APPROVE_STATUS = '03',
+        APPROVE_DATE = NOW()
+        WHERE DOC_ID = #{docId}
+        AND APPROVER_ID = #{processorId}
+        AND APPROVE_STATUS = '02'
+    </update>
+
+    <update id="updateNextApproverStatus">
+        UPDATE TBL_APRLINE
+        SET
+        APPROVE_STATUS = '02'
+        WHERE DOC_ID = #{docId}
+        AND STEP_SEQ = #{stepSeq}
+        AND APPROVE_STATUS = '01'
+    </update>
+
+    <update id="updateActiveDoc">
+        UPDATE TBL_ACTIVEDOC
+        SET
+        LAST_MOD_DATE = NOW()
+        WHERE DOC_ID = #{docId}
+    </update>
+
+    <insert id="insertEndDoc">
+        INSERT INTO TBL_ENDDOC (
+        DOC_ID, COMPLETED_DATE, ARCHIVE_DATE, ATTACH_YN, URGENT_YN,
+        DOC_TITLE, SEARCH_CONTENT, FILE_PATH, FILE_NAME, CONTENT_TYPE
+        )
+        SELECT
+        DOC_ID, NOW(), NULL, ATTACH_YN, URGENT_YN,
+        DOC_TITLE, SEARCH_CONTENT, FILE_PATH, FILE_NAME, CONTENT_TYPE
+        FROM TBL_ACTIVEDOC
+        WHERE DOC_ID = #{docId}
+    </insert>
+
+    <insert id="insertEndAprLine">
+        INSERT INTO TBL_ENDAPRLINE (
+        DOC_ID, STEP_SEQ, APPROVER_ID, APPROVE_TYPE, APPROVE_STATUS,
+        APPROVE_REASON, APPROVE_DATE, APPROVER_NAME, APPROVER_JOB,
+        APPROVER_DEPT_ID, APPROVER_DEPT_NAME
+        )
+        SELECT
+        DOC_ID, STEP_SEQ, APPROVER_ID, APPROVE_TYPE, APPROVE_STATUS,
+        APPROVE_REASON, APPROVE_DATE, APPROVER_NAME, APPROVER_JOB,
+        APPROVER_DEPT_ID, APPROVER_DEPT_NAME
+        FROM TBL_APRLINE
+        WHERE DOC_ID = #{docId}
+    </insert>
+
+    <delete id="deleteActiveDoc">
+        DELETE FROM TBL_ACTIVEDOC WHERE DOC_ID = #{docId}
+    </delete>
+
+    <delete id="deleteAprLine">
+        DELETE FROM TBL_APRLINE WHERE DOC_ID = #{docId}
+    </delete>
 
 </mapper>

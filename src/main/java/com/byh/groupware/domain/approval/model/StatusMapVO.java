@@ -12,6 +12,8 @@ public class StatusMapVO {
     private String currApprover;
     private String currApproverName;
     private String currApproverDept;
+    private String currApproverDeptId;
+
     private LocalDateTime updateDate;
     private String docTitle;
     private String drafter;

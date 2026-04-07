@@ -14,5 +14,7 @@ public class AprLineVO {
     private LocalDateTime approveDate; // APPROVE_DATE: 결재 처리 일시
     private String approverId;     // APPROVER_ID: 결재자 사번/ID
     private String approverName;   // APPROVER_NAME: 결재자 성명
-    private String approverGrade;  // APPROVER_GRADE: 결재자 직급
+    private String approverJob;  // APPROVER_Job: 결재자 직급
+    private String approverDeptId;  // APPROVER_DEPT: 결재자 부서번호
+    private String approverDeptName;  // APPROVER_DEPT: 결재자 부서명
 }

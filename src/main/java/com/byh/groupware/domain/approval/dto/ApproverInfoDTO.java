@@ -15,5 +15,6 @@ public class ApproverInfoDTO {
     private String approveStatus;
     private String approveReason;
     private LocalDateTime approveDate;
-    private String approverDept;
+    private String approverDeptId;
+    private String approverDeptName;
 }
