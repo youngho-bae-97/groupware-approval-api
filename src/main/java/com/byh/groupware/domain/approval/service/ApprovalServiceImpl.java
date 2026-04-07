@@ -1,8 +1,6 @@
 package com.byh.groupware.domain.approval.service;
 
-import com.byh.groupware.domain.approval.dto.ApprovalDraftRequestDTO;
-import com.byh.groupware.domain.approval.dto.ApprovalProcessRequestDTO;
-import com.byh.groupware.domain.approval.dto.ApproverInfoDTO;
+import com.byh.groupware.domain.approval.dto.*;
 import com.byh.groupware.domain.approval.mapper.ApprovalMapper;
 import com.byh.groupware.domain.approval.model.ActiveDocVO;
 import com.byh.groupware.domain.approval.model.DocumentMasterVO;
@@ -15,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDate;
 import java.util.EnumMap;
 import java.util.List;
@@ -124,6 +123,47 @@ public class ApprovalServiceImpl implements ApprovalService {
         }
 
         action.doProcess(approvalProcessRequestDTO);
+    }
+
+    @Override
+    public List<ApprovalListResponseDTO> getApprovalList(ApprovalSearchDTO dto, UserMasterVO loginUser) {
+        dto.setLoginMemId(loginUser.getMemId());
+        dto.setLoginDeptCode(loginUser.getDeptCode());
+
+
+        return approvalMapper.selectApprovalList(dto);
+    }
+
+    @Override
+    public ApprovalDetailResponseDTO getApprovalDetail(String docId, String docStatus, String memId) throws AccessDeniedException {
+
+        ApprovalDetailResponseDTO detail;
+
+        // 상태에 따른 쿼리 분기 수행 (성능 최적화)
+        if ("03".equals(docStatus)) {
+            detail = approvalMapper.selectEndDocDetail(docId);
+        } else {
+            detail = approvalMapper.selectActiveDocDetail(docId);
+        }
+        System.out.println("detail = " + detail);
+        boolean isParticipant = detail.getApproverLines().stream()
+                .anyMatch(line -> memId.equals(line.getApproverId())); // 결재선에 내가 있는지 확인
+
+        boolean isDrafter = memId.equals(detail.getDrafterId());
+
+        // 문서 열람 권한 체크
+        if (!isDrafter && !isParticipant) {
+            throw new AccessDeniedException("이 문서를 열람할 권한이 없습니다.");
+        }
+
+        // 결재 버튼 활성화 여부 판단
+        if (detail != null && !"03".equals(detail.getDocStatus())) {
+            // 진행 중인 문서일 경우, 내 차례(CURR_APPROVER)인 경우만 Approve가 가능하도록 세팅
+            detail.setCanApprove(memId.equals(detail.getCurrApprover()));
+        }
+
+        return detail;
+
     }
 
     private void processInsertMaster(ApprovalDraftRequestDTO approvalDraftRequestDTO) {

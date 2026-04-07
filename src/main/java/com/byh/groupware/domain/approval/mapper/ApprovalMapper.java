@@ -1,8 +1,6 @@
 package com.byh.groupware.domain.approval.mapper;
 
-import com.byh.groupware.domain.approval.dto.ApprovalDraftRequestDTO;
-import com.byh.groupware.domain.approval.dto.ApprovalProcessRequestDTO;
-import com.byh.groupware.domain.approval.dto.ApproverInfoDTO;
+import com.byh.groupware.domain.approval.dto.*;
 import com.byh.groupware.domain.approval.model.ActiveDocVO;
 import com.byh.groupware.domain.approval.model.AprLineVO;
 import com.byh.groupware.domain.approval.model.DocumentMasterVO;
@@ -59,4 +57,10 @@ public interface ApprovalMapper {
     void deleteAprLine(String docId);
 
     int checkApproverAuthority(String docId, String processorId);
+
+    List<ApprovalListResponseDTO> selectApprovalList(ApprovalSearchDTO dto);
+
+    ApprovalDetailResponseDTO selectEndDocDetail(String docId);
+
+    ApprovalDetailResponseDTO selectActiveDocDetail(String docId);
 }

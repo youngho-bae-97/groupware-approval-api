@@ -35,7 +35,7 @@
         PRESERVE_YEAR,
         ROOT_DOC_ID,
         VERSION,
-        DRAFTER_ID,
+        DRAFTER,
         DRAFTER_NAME,
         APPROVAL_FORM_TITLE
         ) VALUES (
@@ -272,5 +272,104 @@
     <delete id="deleteAprLine">
         DELETE FROM TBL_APRLINE WHERE DOC_ID = #{docId}
     </delete>
+
+    <select id="selectApprovalList" resultType="ApprovalListResponseDTO">
+        SELECT
+        S.DOC_ID,
+        S.DOC_TITLE,
+        S.DRAFTER,
+        S.CURR_APPROVER_NAME,
+        S.DOC_STATUS,
+        S.UPDATE_DATE
+        FROM TBL_STATUS_MAP S
+        WHERE 1=1
+
+        <choose>
+
+            <when test="viewType == 'TODO'">
+                AND S.CURR_APPROVER = #{loginMemId}
+                AND S.DOC_STATUS = '02'
+            </when>
+
+
+            <when test="viewType == 'DRAFT'">
+                AND S.DRAFTER = #{loginMemId}
+            </when>
+
+
+            <when test="viewType == 'DEPT'">
+                AND S.DRAFTER_DEPT = #{loginDeptCode}
+            </when>
+
+
+            <when test="viewType == 'COMPLETED'">
+                AND S.DOC_STATUS = '03'
+                AND (
+                S.DRAFTER = #{loginMemId}
+                OR EXISTS (
+                SELECT 1 FROM TBL_APRLINE L
+                WHERE L.DOC_ID = S.DOC_ID AND L.APPROVER_ID = #{loginMemId}
+                )
+                )
+            </when>
+        </choose>
+
+
+        <if test="searchKeyword != null and searchKeyword != ''">
+            AND S.DOC_TITLE LIKE CONCAT('%', #{searchKeyword}, '%')
+        </if>
+
+        ORDER BY S.UPDATE_DATE DESC
+    </select>
+
+    <resultMap id="ApprovalDetailMap" type="ApprovalDetailResponseDTO">
+        <id property="docId" column="DOC_ID"/>
+        <result property="docTitle" column="DOC_TITLE"/>
+        <result property="drafterId" column="DRAFTER_ID"/>
+        <result property="drafterName" column="DRAFTER_NAME"/>
+        <result property="docStatus" column="DOC_STATUS"/>
+        <result property="draftTime" column="DRAFT_TIME"/>
+        <result property="content" column="CONTENT"/>
+        <result property="currApprover" column="CURR_APPROVER"/>
+        <collection property="approverLines" ofType="ApproverInfoDTO">
+            <result property="stepSeq" column="STEP_SEQ"/>
+            <result property="approverName" column="APPROVER_NAME"/>
+            <result property="approveStatus" column="APPROVE_STATUS"/>
+            <result property="approverId" column="APPROVER_ID"/>
+            <result property="approverJob" column="APPROVER_JOB"/>
+            <result property="docId" column="DOC_ID"/>
+            <result property="approveType" column="APPROVE_TYPE"/>
+            <result property="approveReason" column="APPROVE_REASON"/>
+            <result property="approveDate" column="APPROVE_DATE"/>
+            <result property="approverDeptId" column="APPROVER_DEPT_ID"/>
+            <result property="approverDeptName" column="APPROVER_DEPT_NAME"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectActiveDocDetail" parameterType="string" resultMap="ApprovalDetailMap">
+        SELECT
+        M.DOC_ID, M.DRAFTER_NAME, M.DRAFTER_ID, M.DRAFT_TIME, S.DOC_TITLE, S.DOC_STATUS, S.CURR_APPROVER,
+        A.SEARCH_CONTENT AS CONTENT,
+        L.STEP_SEQ, L.APPROVER_ID, L.APPROVER_NAME, L.DOC_ID, L.APPROVER_JOB, L.APPROVE_TYPE, L.APPROVE_REASON, L.APPROVE_DATE, L.APPROVER_DEPT_ID, L.APPROVER_DEPT_NAME, L.APPROVE_STATUS
+        FROM TBL_DOCUMENT_MASTER M
+        JOIN TBL_STATUS_MAP S ON M.DOC_ID = S.DOC_ID
+        JOIN TBL_ACTIVEDOC A ON M.DOC_ID = A.DOC_ID
+        LEFT JOIN TBL_APRLINE L ON M.DOC_ID = L.DOC_ID
+        WHERE M.DOC_ID = #{docId}
+        ORDER BY L.STEP_SEQ ASC
+    </select>
+
+    <select id="selectEndDocDetail" parameterType="string" resultMap="ApprovalDetailMap">
+        SELECT
+        M.DOC_ID, M.DRAFTER_NAME, M.DRAFTER_ID, M.DRAFT_TIME, S.DOC_TITLE, S.DOC_STATUS, S.CURR_APPROVER,
+        E.SEARCH_CONTENT AS CONTENT,
+        L.STEP_SEQ, L.APPROVER_ID, L.APPROVER_NAME, L.DOC_ID, L.APPROVER_JOB, L.APPROVE_TYPE, L.APPROVE_REASON, L.APPROVE_DATE, L.APPROVER_DEPT_ID, L.APPROVER_DEPT_NAME, L.APPROVE_STATUS
+        FROM TBL_DOCUMENT_MASTER M
+        JOIN TBL_STATUS_MAP S ON M.DOC_ID = S.DOC_ID
+        JOIN TBL_ENDDOC E ON M.DOC_ID = E.DOC_ID
+        LEFT JOIN TBL_APRLINE L ON M.DOC_ID = L.DOC_ID
+        WHERE M.DOC_ID = #{docId}
+        ORDER BY L.STEP_SEQ ASC
+    </select>
 
 </mapper>
