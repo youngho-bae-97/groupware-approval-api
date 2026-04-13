@@ -35,7 +35,7 @@
         PRESERVE_YEAR,
         ROOT_DOC_ID,
         VERSION,
-        DRAFTER,
+        DRAFTER_ID,
         DRAFTER_NAME,
         APPROVAL_FORM_TITLE
         ) VALUES (

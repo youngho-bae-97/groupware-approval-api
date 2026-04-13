@@ -34,13 +34,8 @@ public class ApproveAction implements ApprovalAction {
 
         // 결재 권한 확인
         checkApprovalAuthority(dto);
-        //List<ApproverInfoDTO> aprLines = approvalMapper.getAprLine(dto.getDocId());
         boolean isFinal = approvalMapper.isFinalApprover(dto.getDocId(), dto.getProcessorId());
 
-//        if (isFinal) {
-//            doCompleteDocument(dto);
-//            return;
-//        }
         // 문서상태관리 테이블 업데이트 ( 문서상태관리테이블 업데이트는 일반결재, 최종결재 모두 해야하므로 isFinal플래그로 구분짓도록함)
         updateStatusMap(dto,isFinal);
 
