@@ -2,6 +2,8 @@ package com.byh.groupware.domain.approval.service;
 
 import com.byh.groupware.domain.approval.dto.ApprovalProcessRequestDTO;
 import com.byh.groupware.domain.approval.dto.ApproverInfoDTO;
+import com.byh.groupware.domain.approval.exception.ApprovalAccessDeniedException;
+import com.byh.groupware.domain.approval.exception.DocStatusMissMatchException;
 import com.byh.groupware.domain.approval.mapper.ApprovalMapper;
 import com.byh.groupware.domain.approval.model.AprLineVO;
 import com.byh.groupware.domain.approval.model.StatusMapVO;
@@ -57,7 +59,7 @@ public class ApproveAction implements ApprovalAction {
         int count = approvalMapper.checkApproverAuthority(dto.getDocId(), dto.getProcessorId());
 
         if (count == 0) {
-            throw new RuntimeException("해당 문서에 대한 결재 권한이 없거나 현재 결재 순서가 아닙니다.");
+            throw new ApprovalAccessDeniedException("해당 문서에 대한 결재 권한이 없거나 현재 결재 순서가 아닙니다.");
         }
     }
 
@@ -80,7 +82,7 @@ public class ApproveAction implements ApprovalAction {
         StatusMapVO statusMapVO = approvalMapper.selectStatusForUpdate(dto.getDocId());
 
         if (!"02".equals(statusMapVO.getDocStatus())) {
-            throw new RuntimeException("결재 가능한 상태가 아닙니다.");
+            throw new DocStatusMissMatchException("결재 가능한 상태가 아닙니다.");
         }
     }
 

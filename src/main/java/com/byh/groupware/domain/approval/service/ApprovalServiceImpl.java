@@ -1,6 +1,10 @@
 package com.byh.groupware.domain.approval.service;
 
 import com.byh.groupware.domain.approval.dto.*;
+import com.byh.groupware.domain.approval.exception.ApprovalInvalidTypeException;
+import com.byh.groupware.domain.approval.exception.ApprovalNotFoundFormException;
+import com.byh.groupware.domain.approval.exception.MissingApprovalLineException;
+import com.byh.groupware.domain.approval.exception.MissingNextApproverException;
 import com.byh.groupware.domain.approval.mapper.ApprovalMapper;
 import com.byh.groupware.domain.approval.model.ActiveDocVO;
 import com.byh.groupware.domain.approval.model.DocumentMasterVO;
@@ -57,7 +61,7 @@ public class ApprovalServiceImpl implements ApprovalService {
 
         if (currentSeq == null) {
             // 만약 해당 연도/양식 데이터가 없다면 에러
-            throw new RuntimeException(currentYear + "년도 " + formId + " 양식의 채번 정보가 없습니다.");
+            throw new ApprovalNotFoundFormException(currentYear + "년도 " + formId + " 양식의 채번 정보가 없습니다.");
         }
 
         // 3. 다음 번호 계산 및 업데이트 (105 -> 106)
@@ -119,7 +123,7 @@ public class ApprovalServiceImpl implements ApprovalService {
         ApprovalAction action = actionMap.get(type);
 
         if (action == null) {
-            throw new IllegalArgumentException("지원하지 않는 결재 유형입니다: " + type);
+            throw new ApprovalInvalidTypeException("지원하지 않는 결재 유형입니다: " + type);
         }
 
         action.doProcess(approvalProcessRequestDTO);
@@ -235,7 +239,7 @@ public class ApprovalServiceImpl implements ApprovalService {
         // 2. 만약 1인 결재(기안 후 바로 전결 등)라 2번이 없을 경우 대비
         if (nextApprover == null) {
             // 결재선이 기안자뿐이거나 특이케이스일 때 처리
-            throw new RuntimeException("다음 단계 결재자가 지정되지 않았습니다.");
+            throw new MissingNextApproverException("다음 단계 결재자가 지정되지 않았습니다.");
         }
 
         String initialDocStatus = "02"; // 01-임시저장, 02-결재중, 03-완료, 04-반려
@@ -268,7 +272,7 @@ public class ApprovalServiceImpl implements ApprovalService {
             approvalMapper.insertAprLines(aprLines, approvalDraftRequestDTO.getDocId(),firstApproverSeq);
         } else {
             // 결재선이 없으면 기안이 불가능하므로 예외 처리
-            throw new RuntimeException("결재선 정보가 없습니다. 결재자를 지정해주세요.");
+            throw new MissingApprovalLineException("결재선 정보가 없습니다. 결재자를 지정해주세요.");
         }
 
     }

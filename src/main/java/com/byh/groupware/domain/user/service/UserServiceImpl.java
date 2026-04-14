@@ -1,5 +1,6 @@
 package com.byh.groupware.domain.user.service;
 
+import com.byh.groupware.domain.user.exception.InvalidLoginException;
 import com.byh.groupware.domain.user.mapper.UserMapper;
 import com.byh.groupware.domain.user.model.UserMasterVO;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,7 @@ public class UserServiceImpl implements UserService {
         UserMasterVO user = userMapper.findById(memId);
         System.out.println("user = " + user);
         if (user == null || !passwordEncoder.matches(rawPassword, user.getMemPass())) {
-            throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
+            throw new InvalidLoginException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
 
         user.setMemPass(null); // 보안상 비번은 지우고 반환
