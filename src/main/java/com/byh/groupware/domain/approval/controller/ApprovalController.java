@@ -8,8 +8,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
@@ -18,6 +22,7 @@ import java.util.Map;
 
 @Tag(name = "Approval", description = "전자결재 관련 API")
 @RestController
+@Validated
 @RequestMapping("/approval")
 @RequiredArgsConstructor
 public class ApprovalController {
@@ -28,7 +33,7 @@ public class ApprovalController {
 
     @Operation(summary = "문서 기안", description = "클라이언트로부터 전달받은 값들로 기안 처리")
     @PostMapping("/draft")
-    public void doDraft(@Parameter(description = "문서 기안에 필요한 데이터(json)", example = "") @RequestBody ApprovalDraftRequestDTO approvalDraftRequestDTO, HttpSession session){
+    public void doDraft(@Parameter(description = "문서 기안에 필요한 데이터(json)", example = "") @RequestBody @Valid ApprovalDraftRequestDTO approvalDraftRequestDTO, HttpSession session){
 
         // 로그인 성공 시 세션에 저장해둔 객체를 꺼내서 사용
         UserMasterVO loginUser = (UserMasterVO) session.getAttribute("loginUser");
@@ -39,7 +44,7 @@ public class ApprovalController {
 
     @Operation(summary = "문서에 대한 결재/합의/반려/검토 등의 처리 진행", description = "클라이언트로부터 전달받은 결재유형값에 알맞은 처리 진행")
     @PostMapping("/process")
-    public void doProcess(@Parameter(description = "결재유형 / 문서번호(json데이터)", example = "") @RequestBody ApprovalProcessRequestDTO approvalProcessRequestDTO, HttpSession session){
+    public void doProcess(@Parameter(description = "결재유형 / 문서번호(json데이터)", example = "") @RequestBody @Valid ApprovalProcessRequestDTO approvalProcessRequestDTO, HttpSession session){
         UserMasterVO loginUser = (UserMasterVO) session.getAttribute("loginUser");
 
         approvalService.doProcess(approvalProcessRequestDTO,loginUser);
@@ -56,8 +61,11 @@ public class ApprovalController {
     @Operation(summary = "문서 상세 조회", description = "문서 ID와 상태값을 받아 상세 정보를 조회")
     @GetMapping("docDetail")
     public ApprovalDetailResponseDTO getDocDetail(
-            @Parameter(description = "문서 번호", example = "2026FORM-0100001") @RequestParam("docId") String docId,
-            @Parameter(description = "문서 상태(01:임시저장, 02:진행중, 03:완료, 04:반려)", example = "01") @RequestParam("docStatus") String docStatus,
+            @Parameter(description = "문서 번호", example = "2026FORM-0100001") @RequestParam("docId") @NotBlank(message = "문서 번호는 필수입니다.") String docId,
+            @Parameter(description = "문서 상태(01:임시저장, 02:진행중, 03:완료, 04:반려)", example = "01")
+            @RequestParam("docStatus")
+            @NotBlank(message = "문서 상태는 필수입니다.")
+            @Pattern(regexp = "^(01|02|03|04)$", message = "유효하지 않은 문서 상태입니다.")String docStatus,
             HttpSession session) throws AccessDeniedException {
 
         UserMasterVO loginUser = (UserMasterVO) session.getAttribute("loginUser");

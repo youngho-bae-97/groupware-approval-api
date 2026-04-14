@@ -1,24 +1,28 @@
 package com.byh.groupware.domain.approval.dto;
 
 import com.byh.groupware.domain.approval.model.AprLineVO;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
 public class ApprovalProcessRequestDTO {
+    @NotBlank(message = "문서번호는 필수입니다.")
     private String docId;
     private String processorId;         // 결재자 사번
     private String processorName;       // 결재자 이름
     private String processorDept;       // 결재자 소속부서
     private String processorJobGrade;          // 결재자 직급
-
+    @NotBlank(message = "결재유형은 필수입니다.")
     private String approveType;
-
+    @NotBlank
     private String docTitle;          // 문서 제목
+    @NotBlank
     private String docContent;        // 실제 HTML 본문 내용
     private String urgentYn;          // 긴급 여부 (Y/N)
     private String attachYn;          // 첨부파일 여부 (Y/N)
+    @NotBlank
     private String filePath;
     private String fileName;
     private String contentType;

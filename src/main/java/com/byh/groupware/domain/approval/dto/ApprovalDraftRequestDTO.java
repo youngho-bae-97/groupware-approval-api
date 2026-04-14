@@ -1,5 +1,8 @@
 package com.byh.groupware.domain.approval.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 import java.util.List;
@@ -7,6 +10,7 @@ import java.util.List;
 @Data
 public class ApprovalDraftRequestDTO {
     // 1. 문서 마스터 관련 정보
+    @NotBlank(message = "문서번호는 필수입니다.")
     private String docId;
     private String drafterId;         // 기안자 사번 (EMP001)
     private String drafterName;       // 기안자 이름
@@ -25,6 +29,7 @@ public class ApprovalDraftRequestDTO {
 //    private String currApproverId;
 
     // 2. 문서 상세 내용 관련 (ActiveDoc용)
+    @NotBlank(message = "제목은 필수입니다.")
     private String docTitle;          // 문서 제목
     private String docContent;        // 실제 HTML 본문 내용
     private String urgentYn;          // 긴급 여부 (Y/N)
@@ -38,5 +43,6 @@ public class ApprovalDraftRequestDTO {
 
     // 4. 결재선 정보 (동적 리스트)
     // 결재선 테이블(TBL_APRLINE)에 순서대로 들어갈 정보들입니다.
+    @NotEmpty(message = "결재선을 지정해주세요.")
     private List<ApproverInfoDTO> approvalLines;
 }
