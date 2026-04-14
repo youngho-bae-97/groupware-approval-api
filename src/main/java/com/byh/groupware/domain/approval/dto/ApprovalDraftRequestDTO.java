@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 public class ApprovalDraftRequestDTO {
     // 1. 문서 마스터 관련 정보
-    @NotBlank(message = "문서번호는 필수입니다.")
+
     private String docId;
     private String drafterId;         // 기안자 사번 (EMP001)
     private String drafterName;       // 기안자 이름

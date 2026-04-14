@@ -2,6 +2,7 @@ package com.byh.groupware.global.exception;
 
 import com.byh.groupware.domain.approval.exception.*;
 import com.byh.groupware.domain.user.exception.InvalidLoginException;
+import com.byh.groupware.domain.user.exception.MissingLoginUserException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -96,8 +97,20 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(400, errorMessage));
     }
 
+    // 로그인 관련
+
     @ExceptionHandler(InvalidLoginException.class)
     public ResponseEntity<ErrorResponse> handleBadRequest(InvalidLoginException e) {
+
+        ErrorResponse response = new ErrorResponse(
+                401,
+                e.getMessage()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+    @ExceptionHandler(MissingLoginUserException.class)
+    public ResponseEntity<ErrorResponse> handleMissingLoginUser(MissingLoginUserException e) {
 
         ErrorResponse response = new ErrorResponse(
                 401,
