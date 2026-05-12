@@ -1,10 +1,10 @@
 package com.byh.groupware.domain.approval.mapper;
 
 import com.byh.groupware.domain.approval.dto.*;
-import com.byh.groupware.domain.approval.model.ActiveDocVO;
-import com.byh.groupware.domain.approval.model.AprLineVO;
-import com.byh.groupware.domain.approval.model.DocumentMasterVO;
-import com.byh.groupware.domain.approval.model.StatusMapVO;
+import com.byh.groupware.domain.approval.entity.ActiveDoc;
+import com.byh.groupware.domain.approval.entity.AprLine;
+import com.byh.groupware.domain.approval.entity.DocumentMaster;
+import com.byh.groupware.domain.approval.entity.StatusMap;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -12,13 +12,13 @@ import java.util.List;
 
 @Mapper
 public interface ApprovalMapper {
-    DocumentMasterVO selectDraftDocument();
+    DocumentMaster selectDraftDocument();
 
     Integer generateDocNo(String year, String formId);
 
     void updateLastSeq(String year, String formId);
 
-    void draft(DocumentMasterVO masterVO, ActiveDocVO docVO);
+    void draft(DocumentMaster masterVO, ActiveDoc docVO);
 
     void insertDocumentMaster(ApprovalDraftRequestDTO approvalDraftRequestDTO);
 
@@ -32,11 +32,11 @@ public interface ApprovalMapper {
 
     boolean isFinalApprover(@Param("docId") String docId, @Param("processorId") String processorId);
 
-    StatusMapVO selectStatusForUpdate(String docId);
+    StatusMap selectStatusForUpdate(String docId);
 
     //AprLineVO selectNextApprover(ApprovalProcessRequestDTO dto, boolean isFinal);
     // Mapper Interface
-    AprLineVO selectNextApprover(@Param("dto") ApprovalProcessRequestDTO dto, @Param("isFinal") boolean isFinal);
+    AprLine selectNextApprover(@Param("dto") ApprovalProcessRequestDTO dto, @Param("isFinal") boolean isFinal);
 
     void updateStatusMap(@Param("dto") ApprovalProcessRequestDTO dto, @Param("docStatus") String docStatus);
 

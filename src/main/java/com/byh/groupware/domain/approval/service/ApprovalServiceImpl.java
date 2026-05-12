@@ -6,10 +6,9 @@ import com.byh.groupware.domain.approval.exception.ApprovalNotFoundFormException
 import com.byh.groupware.domain.approval.exception.MissingApprovalLineException;
 import com.byh.groupware.domain.approval.exception.MissingNextApproverException;
 import com.byh.groupware.domain.approval.mapper.ApprovalMapper;
-import com.byh.groupware.domain.approval.model.ActiveDocVO;
-import com.byh.groupware.domain.approval.model.DocumentMasterVO;
+import com.byh.groupware.domain.approval.entity.DocumentMaster;
 import com.byh.groupware.domain.approval.type.ApprovalType;
-import com.byh.groupware.domain.user.model.UserMasterVO;
+import com.byh.groupware.domain.user.entity.UserMaster;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,7 +43,7 @@ public class ApprovalServiceImpl implements ApprovalService {
 
 
     @Override
-    public DocumentMasterVO selectDraftDocument() {
+    public DocumentMaster selectDraftDocument() {
         return approvalMapper.selectDraftDocument();
     }
 
@@ -77,7 +76,7 @@ public class ApprovalServiceImpl implements ApprovalService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void draft(ApprovalDraftRequestDTO approvalDraftRequestDTO, UserMasterVO loginUser) {
+    public void draft(ApprovalDraftRequestDTO approvalDraftRequestDTO, UserMaster loginUser) {
         // 1. 문서번호 채번 (여기서부터 채번테이블의 레코드에 락 시작)
         String newDocNo = generateDocNo(approvalDraftRequestDTO.getApprovalFormId());
 
@@ -112,7 +111,7 @@ public class ApprovalServiceImpl implements ApprovalService {
 
     // 결재처리 (복잡한 결재로직은 ApprovalAction인터페이스의 구현클래스에서 처리)
     @Override
-    public void doProcess(ApprovalProcessRequestDTO approvalProcessRequestDTO, UserMasterVO loginUser) {
+    public void doProcess(ApprovalProcessRequestDTO approvalProcessRequestDTO, UserMaster loginUser) {
         // DTO객체에 결재자의 정보 매핑 (세션으로부터 꺼내서 사용함)
         approvalProcessRequestDTO.setProcessorId(loginUser.getMemId());
         approvalProcessRequestDTO.setProcessorName(loginUser.getMemName());
@@ -130,7 +129,7 @@ public class ApprovalServiceImpl implements ApprovalService {
     }
 
     @Override
-    public List<ApprovalListResponseDTO> getApprovalList(ApprovalSearchDTO dto, UserMasterVO loginUser) {
+    public List<ApprovalListResponseDTO> getApprovalList(ApprovalSearchDTO dto, UserMaster loginUser) {
         dto.setLoginMemId(loginUser.getMemId());
         dto.setLoginDeptCode(loginUser.getDeptCode());
 

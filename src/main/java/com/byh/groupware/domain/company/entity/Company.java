@@ -1,9 +1,20 @@
-package com.byh.groupware.domain.company.model;
+package com.byh.groupware.domain.company.entity;
 
+import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Data
-public class CompanyVO {
+@Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "tbl_company")
+public class Company {
+    @Id @GeneratedValue
+    @Column(name = "co_id")
+    private Long id;
+
     private String coCode;
     private String coName;
     private String coCeo;

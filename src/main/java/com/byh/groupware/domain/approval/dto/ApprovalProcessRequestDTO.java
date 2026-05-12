@@ -1,10 +1,8 @@
 package com.byh.groupware.domain.approval.dto;
 
-import com.byh.groupware.domain.approval.model.AprLineVO;
+import com.byh.groupware.domain.approval.entity.AprLine;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-
-import java.util.List;
 
 @Data
 public class ApprovalProcessRequestDTO {
@@ -28,6 +26,6 @@ public class ApprovalProcessRequestDTO {
     private String contentType;
 
     // 상세정보로 조회 후 해당문서에 대한 결재선 정보를 받았다고 가정
-    private AprLineVO currApprover;
+    private AprLine currApprover;
 
 }

@@ -1,10 +1,9 @@
 package com.byh.groupware.domain.approval.controller;
 
 import com.byh.groupware.domain.approval.dto.*;
-import com.byh.groupware.domain.approval.service.ApprovalAction;
 import com.byh.groupware.domain.approval.service.ApprovalService;
 import com.byh.groupware.domain.user.exception.MissingLoginUserException;
-import com.byh.groupware.domain.user.model.UserMasterVO;
+import com.byh.groupware.domain.user.entity.UserMaster;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,13 +13,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Tag(name = "Approval", description = "전자결재 관련 API")
@@ -39,7 +36,7 @@ public class ApprovalController {
     public void doDraft(@Parameter(description = "문서 기안에 필요한 데이터(json)", example = "") @RequestBody @Valid ApprovalDraftRequestDTO approvalDraftRequestDTO, HttpSession session){
 
         // 로그인 성공 시 세션에 저장해둔 객체를 꺼내서 사용
-        UserMasterVO loginUser = (UserMasterVO) session.getAttribute("loginUser");
+        UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
         if (loginUser == null) {
             log.warn("기안 요청 failed!! - 로그인 사용자 없음");
@@ -56,7 +53,7 @@ public class ApprovalController {
     @Operation(summary = "문서에 대한 결재/합의/반려/검토 등의 처리 진행", description = "클라이언트로부터 전달받은 결재유형값에 알맞은 처리 진행")
     @PostMapping("/process")
     public void doProcess(@Parameter(description = "결재유형 / 문서번호(json데이터)", example = "") @RequestBody @Valid ApprovalProcessRequestDTO approvalProcessRequestDTO, HttpSession session){
-        UserMasterVO loginUser = (UserMasterVO) session.getAttribute("loginUser");
+        UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
         if (loginUser == null) {
             log.warn("결재 요청 failed!! - 로그인 사용자 없음");
             throw new MissingLoginUserException("로그인이 필요합니다.");
@@ -69,7 +66,7 @@ public class ApprovalController {
     @Operation(summary = "문서 목록 조회", description = "클라이언트로부터 전달받은 viewType값에 따라 필요한 문서목록을 조회")
     @GetMapping("docList")
     public List<ApprovalListResponseDTO> getDocList(@Parameter(description = "결재유형 및 검색키워드를 쿼리파라미터로 전달", example = "http://localhost:8080/approval/docList?viewType=TODO&searchKeyword=2026") @ModelAttribute ApprovalSearchDTO dto, HttpSession session){
-        UserMasterVO loginUser = (UserMasterVO) session.getAttribute("loginUser");
+        UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
         return approvalService.getApprovalList(dto, loginUser);
     }
@@ -84,7 +81,7 @@ public class ApprovalController {
             @Pattern(regexp = "^(01|02|03|04)$", message = "유효하지 않은 문서 상태입니다.")String docStatus,
             HttpSession session) throws AccessDeniedException {
 
-        UserMasterVO loginUser = (UserMasterVO) session.getAttribute("loginUser");
+        UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
         return approvalService.getApprovalDetail(docId, docStatus, loginUser.getMemId());
     }
 

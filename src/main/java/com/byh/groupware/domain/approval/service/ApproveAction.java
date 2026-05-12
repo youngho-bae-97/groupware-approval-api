@@ -1,18 +1,14 @@
 package com.byh.groupware.domain.approval.service;
 
 import com.byh.groupware.domain.approval.dto.ApprovalProcessRequestDTO;
-import com.byh.groupware.domain.approval.dto.ApproverInfoDTO;
 import com.byh.groupware.domain.approval.exception.ApprovalAccessDeniedException;
 import com.byh.groupware.domain.approval.exception.DocStatusMissMatchException;
 import com.byh.groupware.domain.approval.mapper.ApprovalMapper;
-import com.byh.groupware.domain.approval.model.AprLineVO;
-import com.byh.groupware.domain.approval.model.StatusMapVO;
+import com.byh.groupware.domain.approval.entity.StatusMap;
 import com.byh.groupware.domain.approval.type.ApprovalType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -79,7 +75,7 @@ public class ApproveAction implements ApprovalAction {
     }
 
     private void isCompletedDocment(ApprovalProcessRequestDTO dto) {
-        StatusMapVO statusMapVO = approvalMapper.selectStatusForUpdate(dto.getDocId());
+        StatusMap statusMapVO = approvalMapper.selectStatusForUpdate(dto.getDocId());
 
         if (!"02".equals(statusMapVO.getDocStatus())) {
             throw new DocStatusMissMatchException("결재 가능한 상태가 아닙니다.");

@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: groupware
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/groupware_db?useUnicode=true&characterEncoding=utf8
+    username: gw_user
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        naming:
+          physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+        #        show_sql: true
+        format_sql: true
+
+  data:
+    web:
+      pageable:
+        default-page-size: 10
+        max-page-size: 2000
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+
+
+  type-aliases-package: >
+    com.byh.groupware.domain.approval.entity,
+    com.byh.groupware.domain.dept.entity,
+    com.byh.groupware.domain.user.entity,
+    com.byh.groupware.domain.company.entity,
+    com.byh.groupware.domain.approval.dto
+
+  mapper-locations: classpath:mapper/**/*.xml
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace

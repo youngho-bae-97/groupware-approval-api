@@ -1,10 +1,25 @@
-package com.byh.groupware.domain.user.model;
+package com.byh.groupware.domain.user.entity;
 
+import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Fetch;
 
-@Data
-public class UserMasterVO {
-    private String memId;
+@Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "tbl_user_master")
+public class UserMaster {
+
+    @Id
+    @GeneratedValue
+    @Column(name = "mem_id")
+    private Long id;
+
+    private String loginId;
+
     private String memName;
     private String memPass;
     private String jobGrade;
@@ -22,8 +37,11 @@ public class UserMasterVO {
     private String zipcode;
     private String memAddr;
     private String memAddrDetail;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dept_id")
     private String deptCode;
-    private String coCode;
+
     private String useYn;
 
     private String deptName;
