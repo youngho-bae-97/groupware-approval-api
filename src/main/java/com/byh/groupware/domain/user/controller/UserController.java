@@ -1,14 +1,19 @@
 package com.byh.groupware.domain.user.controller;
 
 import com.byh.groupware.domain.user.dto.UserLoginDTO;
+import com.byh.groupware.domain.user.dto.UserRegisterDTO;
 import com.byh.groupware.domain.user.entity.UserMaster;
+import com.byh.groupware.domain.user.exception.InvalidLoginException;
+import com.byh.groupware.domain.user.service.JPAUserService;
 import com.byh.groupware.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,28 +25,35 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    //private final UserService userService;
+
+    private final JPAUserService jpaUserService;
 
     // 1. 회원가입 API
     @Operation(summary = "회원가입", description = "사용자 비밀번호는 Spring Security의 BCryptPasswordEncoder를 활용하여 해싱 후 저장")
     @PostMapping("/register")
-    public ResponseEntity<String> join(@RequestBody UserMaster user) {
-        userService.register(user);
+    public ResponseEntity<String> join(@Valid @RequestBody UserRegisterDTO userRegisterDTO, BindingResult result) {
+        if(result.hasErrors()){
+            throw new InvalidLoginException("잘못된 회원가입 정보");
+        }
+
+        jpaUserService.register(userRegisterDTO);
         return ResponseEntity.ok("회원가입 성공");
     }
 
     // 2. 로그인 API
     @Operation(summary = "로그인", description = "사용자로부터 받은 비밀번호값을 해싱하여 DB의 해싱값과 비교 / 성공 시 로그인 정보는 세션에 저장")
     @PostMapping("/login")
-    public ResponseEntity<UserMaster> login(@RequestBody UserLoginDTO loginDto, HttpServletRequest request) {
+    public ResponseEntity<UserLoginDTO> login(@RequestBody UserLoginDTO loginDto, HttpServletRequest request) {
         // 로직 실행
-        UserMaster loginUser = userService.login(loginDto.getMemId(), loginDto.getMemPass());
+        UserMaster loginUser = jpaUserService.login(loginDto.getMemId(), loginDto.getMemPass());
+
 
         // 세션 생성 및 저장
         HttpSession session = request.getSession();
         session.setAttribute("loginUser", loginUser);
 
-        return ResponseEntity.ok(loginUser);
+        return ResponseEntity.ok(new UserLoginDTO(loginUser));
     }
 
     @Operation(summary = "로그아웃", description = "세션 초기화")

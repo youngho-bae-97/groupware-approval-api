@@ -23,6 +23,12 @@ public class DocForm extends BaseEntity implements Persistable<String> {
     private String approvalFormStatus;
     private String approvalFormBookmark;
 
+    public DocForm(String id, String approvalFormTitle, String approvalFormStatus){
+        this.id = id;
+        this.approvalFormTitle = approvalFormTitle;
+        this.approvalFormStatus = approvalFormStatus;
+    }
+
     @Override
     public String getId(){
         return id;

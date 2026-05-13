@@ -39,4 +39,8 @@ public class AprLine extends BaseEntity {
     private String approverJob;  // APPROVER_Job: 결재자 직급
     private String approverDeptId;  // APPROVER_DEPT: 결재자 부서번호
     private String approverDeptName;  // APPROVER_DEPT: 결재자 부서명
+
+    public void confirmMaster(DocumentMaster documentMaster) {
+        this.documentMaster = documentMaster;
+    }
 }

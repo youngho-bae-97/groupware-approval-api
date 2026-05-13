@@ -1,5 +1,7 @@
 package com.byh.groupware.domain.user.entity;
 
+import com.byh.groupware.domain.dept.entity.DeptMaster;
+import com.byh.groupware.domain.user.dto.UserRegisterDTO;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -40,9 +42,26 @@ public class UserMaster {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dept_id")
-    private String deptCode;
+    private DeptMaster dept;
 
     private String useYn;
 
     private String deptName;
+
+    public UserMaster(String encodedPw, DeptMaster dept, UserRegisterDTO userRegisterDTO){
+        this.memPass = encodedPw;
+        this.useYn = "Y";
+        this.dept = dept;
+        this.loginId = userRegisterDTO.getMemId();
+        this.memName = userRegisterDTO.getMemName();
+
+    }
+
+    public void EncryptPassword(String encodedPw) {
+        this.memPass = encodedPw;
+    }
+
+    public void cleanMemPass() {
+        this.memPass = null;
+    }
 }

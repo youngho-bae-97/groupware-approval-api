@@ -32,12 +32,9 @@ public class ActiveDoc extends BaseEntity implements Persistable<String> {
     private String fileName;
     private String contentType;
 
-    public ActiveDoc(DocumentMaster documentMaster){
-        this.documentMaster = documentMaster;
-
-        if (documentMaster != null) {
-            this.id = documentMaster.getId();
-        }
+    public void confirmMaster(DocumentMaster master){
+        this.documentMaster = master;
+        this.id = master.getId();
     }
 
     @Override

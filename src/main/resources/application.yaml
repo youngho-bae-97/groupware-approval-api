@@ -6,7 +6,8 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/groupware_db?useUnicode=true&characterEncoding=utf8
     username: gw_user
-    password: ${DB_PASSWORD}
+    #password: ${DB_PASSWORD}
+    password: java
 
   jpa:
     hibernate:
@@ -24,21 +25,27 @@ spring:
         default-page-size: 10
         max-page-size: 2000
 
-mybatis:
-  configuration:
-    map-underscore-to-camel-case: true
+#mybatis:
+#  configuration:
+#    map-underscore-to-camel-case: true
 
 
-  type-aliases-package: >
-    com.byh.groupware.domain.approval.entity,
-    com.byh.groupware.domain.dept.entity,
-    com.byh.groupware.domain.user.entity,
-    com.byh.groupware.domain.company.entity,
-    com.byh.groupware.domain.approval.dto
-
-  mapper-locations: classpath:mapper/**/*.xml
-
+#  type-aliases-package: >
+#    com.byh.groupware.domain.approval.entity,
+#    com.byh.groupware.domain.dept.entity,
+#    com.byh.groupware.domain.user.entity,
+#    com.byh.groupware.domain.company.entity,
+#    com.byh.groupware.domain.approval.dto
+#
+#  mapper-locations: classpath:mapper/**/*.xml
 logging:
   level:
-    org.hibernate.SQL: debug
-    org.hibernate.orm.jdbc.bind: trace
+    root: info
+    com.byh.groupware: debug          # 내 패키지 로그는 상세히
+    org.hibernate.SQL: debug          # 하이버네이트가 날리는 SQL 확인
+    org.hibernate.type.descriptor.sql: trace # SQL 파라미터 값까지 확인
+    org.springframework.web: debug    # 웹 요청 관련 로그
+#logging:
+#  level:
+#    org.hibernate.SQL: debug
+#    org.hibernate.orm.jdbc.bind: trace

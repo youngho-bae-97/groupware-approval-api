@@ -1,7 +1,9 @@
 package com.byh.groupware.domain.approval.controller;
 
 import com.byh.groupware.domain.approval.dto.*;
+import com.byh.groupware.domain.approval.entity.StatusMap;
 import com.byh.groupware.domain.approval.service.ApprovalService;
+import com.byh.groupware.domain.approval.service.JpaApprovalService;
 import com.byh.groupware.domain.user.exception.MissingLoginUserException;
 import com.byh.groupware.domain.user.entity.UserMaster;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +15,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,8 +32,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApprovalController {
 
-    private final ApprovalService approvalService;
-
+    //private final ApprovalService approvalService;
+    private final JpaApprovalService jpaApprovalService;
 
 
     @Operation(summary = "문서 기안", description = "클라이언트로부터 전달받은 값들로 기안 처리")
@@ -43,11 +48,11 @@ public class ApprovalController {
             throw new MissingLoginUserException("로그인이 필요합니다.");
         }
 
-        log.info("기안 요청 started!! - userId: {}, title: {}", loginUser.getMemId(), approvalDraftRequestDTO.getDocTitle());
+        log.info("기안 요청 started!! - userId: {}, title: {}", loginUser.getLoginId(), approvalDraftRequestDTO.getDocTitle());
 
-        approvalService.draft(approvalDraftRequestDTO,loginUser);
+        jpaApprovalService.draft(approvalDraftRequestDTO,loginUser);
 
-        log.info("기안 요청 ended!! - userId: {}, docId: {}", loginUser.getMemId() , approvalDraftRequestDTO.getDocId());
+        log.info("기안 요청 ended!! - userId: {}, docId: {}", loginUser.getLoginId() , approvalDraftRequestDTO.getDocId());
     }
 
     @Operation(summary = "문서에 대한 결재/합의/반려/검토 등의 처리 진행", description = "클라이언트로부터 전달받은 결재유형값에 알맞은 처리 진행")
@@ -58,17 +63,27 @@ public class ApprovalController {
             log.warn("결재 요청 failed!! - 로그인 사용자 없음");
             throw new MissingLoginUserException("로그인이 필요합니다.");
         }
-        log.info("결재 요청 started!! - userId: {}, docId: {}", loginUser.getMemId(), approvalProcessRequestDTO.getDocId());
-        approvalService.doProcess(approvalProcessRequestDTO,loginUser);
-        log.info("결재 요청 ended!! - userId: {}, docId: {}", loginUser.getMemId(), approvalProcessRequestDTO.getDocId());
+        log.info("결재 요청 started!! - userId: {}, docId: {}", loginUser.getLoginId(), approvalProcessRequestDTO.getDocId());
+        jpaApprovalService.doProcess(approvalProcessRequestDTO,loginUser);
+        log.info("결재 요청 ended!! - userId: {}, docId: {}", loginUser.getLoginId(), approvalProcessRequestDTO.getDocId());
     }
 
     @Operation(summary = "문서 목록 조회", description = "클라이언트로부터 전달받은 viewType값에 따라 필요한 문서목록을 조회")
     @GetMapping("docList")
-    public List<ApprovalListResponseDTO> getDocList(@Parameter(description = "결재유형 및 검색키워드를 쿼리파라미터로 전달", example = "http://localhost:8080/approval/docList?viewType=TODO&searchKeyword=2026") @ModelAttribute ApprovalSearchDTO dto, HttpSession session){
+    public Page<ApprovalListResponseDTO> getDocList(@Parameter(description = "결재유형 및 검색키워드를 쿼리파라미터로 전달", example = "http://localhost:8080/approval/docList?viewType=TODO&searchKeyword=2026")
+                                                        @ModelAttribute ApprovalSearchDTO dto,
+                                                    @PageableDefault(size = 5, sort = "createdDate") Pageable pageable, HttpSession session){
         UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
-        return approvalService.getApprovalList(dto, loginUser);
+
+        Page<StatusMap> page = jpaApprovalService.getApprovalList(dto, loginUser,pageable);
+
+
+        Page<ApprovalListResponseDTO> map = page.map(statusMap -> new ApprovalListResponseDTO(statusMap));
+
+
+        return map;
+
     }
 
     @Operation(summary = "문서 상세 조회", description = "문서 ID와 상태값을 받아 상세 정보를 조회")
@@ -82,7 +97,7 @@ public class ApprovalController {
             HttpSession session) throws AccessDeniedException {
 
         UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-        return approvalService.getApprovalDetail(docId, docStatus, loginUser.getMemId());
+        return jpaApprovalService.getApprovalDetail(docId, docStatus, loginUser.getLoginId());
     }
 
 

@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Persistable;
 
+import javax.print.Doc;
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,6 +21,11 @@ public class StatusMap extends BaseEntity implements Persistable<String> {
     @Id
     @Column(name = "doc_id")
     private String id;
+
+    @MapsId
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "doc_id")
+    private DocumentMaster documentMaster;
 
     private String docStatus;
     private Integer currStep;
@@ -35,6 +41,11 @@ public class StatusMap extends BaseEntity implements Persistable<String> {
     private String docTitle;
     private String drafter;
     private String drafterDept;
+
+    public void confirmMaster(DocumentMaster master){
+        this.documentMaster = master;
+        this.id = master.getId();
+    }
 
     @Override
     public String getId(){

@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Persistable;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -36,6 +38,15 @@ public class DocumentMaster extends BaseEntity implements Persistable<String> {
     private String drafterName;        // 기안자 성명 (박제)
     private String approvalFormTitle;  // 양식 명칭 (박제 - ex: 연차신청서)
 
+    @OneToOne(mappedBy = "documentMaster", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private StatusMap statusMap;
+
+    @OneToOne(mappedBy = "documentMaster", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ActiveDoc activeDoc;
+
+    @OneToMany(mappedBy = "documentMaster")
+    private List<AprLine> aprLines = new ArrayList<>();
+
     @Override
     public String getId(){
         return id;
@@ -44,5 +55,27 @@ public class DocumentMaster extends BaseEntity implements Persistable<String> {
     @Override
     public boolean isNew() {
         return getCreatedDate() == null;
+    }
+    public void addStatusMap(StatusMap statusMap){
+        this.statusMap = statusMap;
+
+        if(statusMap.getDocumentMaster() != this){
+            statusMap.confirmMaster(this);
+        }
+    }
+    public void addActiveDoc(ActiveDoc activeDoc){
+        this.activeDoc = activeDoc;
+
+        if(activeDoc.getDocumentMaster() != this){
+            activeDoc.confirmMaster(this);
+        }
+    }
+
+    public void addAprLine(AprLine aprLine){
+        this.aprLines.add(aprLine);
+
+        if(aprLine.getDocumentMaster() != this){
+            aprLine.confirmMaster(this);
+        }
     }
 }

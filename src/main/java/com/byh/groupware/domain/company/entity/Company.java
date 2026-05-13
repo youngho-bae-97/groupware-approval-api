@@ -28,4 +28,11 @@ public class Company {
     private Integer coSubsPeriod;
     private Integer coStorageSize;
     private Integer coUserSize;
+
+    public Company(String coCode, String coName, String coCeo, String coTel){
+        this.coCode = coCode;
+        this.coName = coName;
+        this.coCeo = coCeo;
+        this.coTel = coTel;
+    }
 }
