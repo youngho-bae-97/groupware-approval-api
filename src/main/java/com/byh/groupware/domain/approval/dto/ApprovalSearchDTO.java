@@ -1,8 +1,10 @@
 package com.byh.groupware.domain.approval.dto;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class ApprovalSearchDTO {
     private String loginMemId;   // 로그인한 사용자 ID
     private String loginDeptCode; // 로그인한 사용자의 부서 코드

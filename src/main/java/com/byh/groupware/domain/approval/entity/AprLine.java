@@ -1,5 +1,6 @@
 package com.byh.groupware.domain.approval.entity;
 
+import com.byh.groupware.domain.approval.dto.ApproverInfoDTO;
 import com.byh.groupware.domain.user.entity.UserMaster;
 import com.byh.groupware.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -39,6 +40,32 @@ public class AprLine extends BaseEntity {
     private String approverJob;  // APPROVER_Job: 결재자 직급
     private String approverDeptId;  // APPROVER_DEPT: 결재자 부서번호
     private String approverDeptName;  // APPROVER_DEPT: 결재자 부서명
+
+    private AprLine(ApproverInfoDTO lineDto, int firstApproverSeq,UserMaster userMaster){
+        this.stepSeq = lineDto.getStepSeq();
+        this.userMaster = userMaster;
+        this.approverName = lineDto.getApproverName();
+        this.approverJob = lineDto.getApproverJob();
+        this.approveType = lineDto.getApproveType();
+        this.approverDeptId = lineDto.getApproverDeptId();
+        this.approverDeptName = lineDto.getApproverDeptName();
+
+        if(lineDto.getStepSeq() == 1){
+            this.approveStatus = "03";
+        } else if (lineDto.getStepSeq() == firstApproverSeq && lineDto.getApproveType() == "02") {
+            this.approveStatus = "02";
+        }else{
+            this.approveStatus = "01";
+
+        }
+
+    }
+
+    public static AprLine createAprLine(ApproverInfoDTO lineDto, int firstApproverSeq,UserMaster userMaster) {
+
+        return new AprLine(lineDto,firstApproverSeq, userMaster);
+
+    }
 
     public void confirmMaster(DocumentMaster documentMaster) {
         this.documentMaster = documentMaster;

@@ -4,12 +4,14 @@ import com.byh.groupware.domain.approval.entity.DocumentMaster;
 import com.byh.groupware.domain.approval.entity.EndDocumentMaster;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Data
+@NoArgsConstructor
 @Schema(description = "결재 상세 응답 정보")
 public class ApprovalDetailResponseDTO {
     @Schema(description = "문서 번호", example = "2026FORM-0100001")

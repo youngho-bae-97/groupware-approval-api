@@ -1,5 +1,6 @@
 package com.byh.groupware.domain.approval.entity;
 
+import com.byh.groupware.domain.approval.dto.ApprovalDraftRequestDTO;
 import com.byh.groupware.domain.user.entity.UserMaster;
 import com.byh.groupware.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -38,14 +39,40 @@ public class DocumentMaster extends BaseEntity implements Persistable<String> {
     private String drafterName;        // 기안자 성명 (박제)
     private String approvalFormTitle;  // 양식 명칭 (박제 - ex: 연차신청서)
 
-    @OneToOne(mappedBy = "documentMaster", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "documentMaster",
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            fetch = FetchType.LAZY)
     private StatusMap statusMap;
 
-    @OneToOne(mappedBy = "documentMaster", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "documentMaster",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            orphanRemoval = true)
     private ActiveDoc activeDoc;
 
-    @OneToMany(mappedBy = "documentMaster")
+    @OneToMany(mappedBy = "documentMaster",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<AprLine> aprLines = new ArrayList<>();
+
+    private DocumentMaster(ApprovalDraftRequestDTO approvalDraftRequestDTO, UserMaster userMaster, DocForm docForm){
+        this.id = approvalDraftRequestDTO.getDocId();
+        this.securityLevel = approvalDraftRequestDTO.getSecurityLevel();
+        this.preserveYear = approvalDraftRequestDTO.getPreserveYear();
+        this.rootDocId = approvalDraftRequestDTO.getRootDocId();
+        this.version = approvalDraftRequestDTO.getVersion();
+        this.drafterDept = approvalDraftRequestDTO.getDrafterDept();
+        this.drafterName = approvalDraftRequestDTO.getDrafterName();
+        this.approvalFormTitle = approvalDraftRequestDTO.getApprovalFormTitle();
+        // 아래필드는 연관관계 걸려있는 엔티티들(정합성 위해서 편의 메소드 추가해줘야됨!!!)
+        this.userMaster = userMaster;
+        this.docForm = docForm;
+
+    }
+
+    public static DocumentMaster createDocumentMaster(ApprovalDraftRequestDTO approvalDraftRequestDTO,UserMaster userMaster, DocForm docForm) {
+        return new DocumentMaster(approvalDraftRequestDTO, userMaster,docForm);
+    }
 
     @Override
     public String getId(){

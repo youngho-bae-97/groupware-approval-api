@@ -1,5 +1,6 @@
 package com.byh.groupware.domain.approval.entity;
 
+import com.byh.groupware.domain.approval.dto.ApprovalDraftRequestDTO;
 import com.byh.groupware.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -31,6 +32,21 @@ public class ActiveDoc extends BaseEntity implements Persistable<String> {
     private String filePath;
     private String fileName;
     private String contentType;
+
+    private ActiveDoc(ApprovalDraftRequestDTO approvalDraftRequestDTO){
+        this.attachYn = approvalDraftRequestDTO.getAttachYn();
+        this.urgentYn = approvalDraftRequestDTO.getUrgentYn();
+        this.docTitle = approvalDraftRequestDTO.getDocTitle();
+        this.searchContent = approvalDraftRequestDTO.getDocContent();
+        this.filePath = approvalDraftRequestDTO.getFilePath();
+        this.fileName = approvalDraftRequestDTO.getFileName();
+        this.contentType = approvalDraftRequestDTO.getContentType();
+    }
+
+    public static ActiveDoc createActiveDoc(ApprovalDraftRequestDTO approvalDraftRequestDTO) {
+
+        return new ActiveDoc(approvalDraftRequestDTO);
+    }
 
     public void confirmMaster(DocumentMaster master){
         this.documentMaster = master;

@@ -56,9 +56,9 @@ public class GroupwareApplication {
             HttpServletRequest request = attributes.getRequest();
             HttpSession session = request.getSession(false);
 
-            if (session != null && session.getAttribute("loginMember") != null) {
+            if (session != null && session.getAttribute("loginUser") != null) {
                 // 세션에서 로그인한 사용자 ID를 추출 (예시)
-                 UserMaster loginMember = (UserMaster) session.getAttribute("loginMember");
+                 UserMaster loginMember = (UserMaster) session.getAttribute("loginUser");
                  return Optional.of(loginMember.getLoginId());
             }
 

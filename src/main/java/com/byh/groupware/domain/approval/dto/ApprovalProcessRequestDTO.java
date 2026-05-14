@@ -3,8 +3,10 @@ package com.byh.groupware.domain.approval.dto;
 import com.byh.groupware.domain.approval.entity.AprLine;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class ApprovalProcessRequestDTO {
     @NotBlank(message = "문서번호는 필수입니다.")
     private String docId;

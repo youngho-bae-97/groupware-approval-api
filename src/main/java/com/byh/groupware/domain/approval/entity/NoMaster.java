@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Persistable;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,10 +27,14 @@ public class NoMaster extends BaseEntity implements Persistable<NoMasterId> {
 
     private Integer lastSeq;        // 마지막 발행 번호
 
-    public NoMaster(DocForm docForm, String year) {
+    private NoMaster(DocForm docForm, String year) {
         this.docForm = docForm;
         this.id = new NoMasterId(year, docForm.getId());
         this.lastSeq = 0;
+    }
+
+    public static NoMaster createDocNo(String currentYear, DocForm docForm) {
+        return new NoMaster(docForm,currentYear);
     }
 
     @Override
@@ -42,8 +47,9 @@ public class NoMaster extends BaseEntity implements Persistable<NoMasterId> {
         return getCreatedDate() == null;
     }
 
-    // 일련번호 증가 로직 (도메인 메서드)
-    public void incrementSeq() {
-        this.lastSeq++;
+
+    public Integer updateSeq() {
+        this.lastSeq += 1;
+        return this.lastSeq;
     }
 }

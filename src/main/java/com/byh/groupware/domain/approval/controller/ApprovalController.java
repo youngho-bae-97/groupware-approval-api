@@ -78,7 +78,7 @@ public class ApprovalController {
 
         Page<StatusMap> page = jpaApprovalService.getApprovalList(dto, loginUser,pageable);
 
-
+        log.info("결재 목록 확인 : {}",page);
         Page<ApprovalListResponseDTO> map = page.map(statusMap -> new ApprovalListResponseDTO(statusMap));
 
 

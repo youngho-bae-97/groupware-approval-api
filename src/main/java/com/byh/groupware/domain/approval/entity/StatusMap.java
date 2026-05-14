@@ -1,5 +1,8 @@
 package com.byh.groupware.domain.approval.entity;
 
+import com.byh.groupware.domain.approval.dto.ApprovalDraftRequestDTO;
+import com.byh.groupware.domain.approval.dto.ApproverInfoDTO;
+import com.byh.groupware.domain.approval.exception.MissingNextApproverException;
 import com.byh.groupware.domain.user.entity.UserMaster;
 import com.byh.groupware.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -11,6 +14,7 @@ import org.springframework.data.domain.Persistable;
 
 import javax.print.Doc;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -41,6 +45,27 @@ public class StatusMap extends BaseEntity implements Persistable<String> {
     private String docTitle;
     private String drafter;
     private String drafterDept;
+
+
+    private StatusMap(ApprovalDraftRequestDTO approvalDraftRequestDTO, UserMaster nextMember,ApproverInfoDTO approverInfoDTO, String docStatus){
+        this.docStatus = docStatus;
+        this.currStep = approverInfoDTO.getStepSeq();
+        this.userMaster = nextMember;
+        this.docTitle = approvalDraftRequestDTO.getDocTitle();
+        this.drafter = approvalDraftRequestDTO.getDrafterId();
+        this.drafterDept = approvalDraftRequestDTO.getDrafterDept();
+        this.currApproverName = approverInfoDTO.getApproverName();
+        this.currApproverDept = approverInfoDTO.getApproverDeptName();
+        this.currApproverDeptId = approverInfoDTO.getApproverDeptId();
+
+
+    }
+
+    public static StatusMap createStatusMap(ApprovalDraftRequestDTO approvalDraftRequestDTO,UserMaster nextMember, ApproverInfoDTO approverInfoDTO, String docStatus) {
+
+
+        return new StatusMap(approvalDraftRequestDTO,nextMember, approverInfoDTO, docStatus);
+    }
 
     public void confirmMaster(DocumentMaster master){
         this.documentMaster = master;
