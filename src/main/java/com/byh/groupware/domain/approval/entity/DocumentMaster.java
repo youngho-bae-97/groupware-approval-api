@@ -41,7 +41,8 @@ public class DocumentMaster extends BaseEntity implements Persistable<String> {
 
     @OneToOne(mappedBy = "documentMaster",
             cascade = {CascadeType.PERSIST, CascadeType.MERGE},
-            fetch = FetchType.LAZY)
+            fetch = FetchType.LAZY,
+            orphanRemoval = true)
     private StatusMap statusMap;
 
     @OneToOne(mappedBy = "documentMaster",
@@ -105,4 +106,33 @@ public class DocumentMaster extends BaseEntity implements Persistable<String> {
             aprLine.confirmMaster(this);
         }
     }
+
+    public void removeStatusMap(){
+
+        if(this.statusMap != null){
+            this.statusMap.confirmMaster(null);
+        }
+
+        this.statusMap = null;
+    }
+
+    public void removeActiveDoc(){
+
+        if(this.activeDoc != null){
+            this.activeDoc.confirmMaster(null);
+        }
+
+        this.activeDoc = null;
+    }
+
+    public void removeAprLines(){
+
+        for(AprLine aprLine : this.aprLines){
+            aprLine.confirmMaster(null);
+        }
+
+        this.aprLines.clear();
+    }
+
+
 }

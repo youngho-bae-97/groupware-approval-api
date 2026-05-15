@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Persistable;
+import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
 
@@ -50,7 +51,9 @@ public class ActiveDoc extends BaseEntity implements Persistable<String> {
 
     public void confirmMaster(DocumentMaster master){
         this.documentMaster = master;
-        this.id = master.getId();
+        if(master != null){
+            this.id = master.getId();
+        }
     }
 
     @Override
@@ -63,4 +66,15 @@ public class ActiveDoc extends BaseEntity implements Persistable<String> {
         return getCreatedDate() == null;
     }
 
+    public void doApprove(String docTitle, String docContent) {
+
+        if(!ObjectUtils.isEmpty(docTitle)){
+            this.docTitle = docTitle;
+        }
+
+        if (!ObjectUtils.isEmpty(docContent)) {
+            this.searchContent = docContent;
+        }
+
+    }
 }

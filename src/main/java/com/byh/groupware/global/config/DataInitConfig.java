@@ -40,5 +40,7 @@ public class DataInitConfig implements CommandLineRunner {
             docFormRepository.save(new DocForm("FORM-01","연차신청서","Y"));
             docFormRepository.save(new DocForm("FORM-02","지출결의서","Y"));
         }
+
+
     }
 }

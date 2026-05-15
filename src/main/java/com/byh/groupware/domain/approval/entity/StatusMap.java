@@ -1,6 +1,7 @@
 package com.byh.groupware.domain.approval.entity;
 
 import com.byh.groupware.domain.approval.dto.ApprovalDraftRequestDTO;
+import com.byh.groupware.domain.approval.dto.ApprovalProcessRequestDTO;
 import com.byh.groupware.domain.approval.dto.ApproverInfoDTO;
 import com.byh.groupware.domain.approval.exception.MissingNextApproverException;
 import com.byh.groupware.domain.user.entity.UserMaster;
@@ -30,6 +31,9 @@ public class StatusMap extends BaseEntity implements Persistable<String> {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doc_id")
     private DocumentMaster documentMaster;
+
+    @Version
+    private Long version;
 
     private String docStatus;
     private Integer currStep;
@@ -69,7 +73,10 @@ public class StatusMap extends BaseEntity implements Persistable<String> {
 
     public void confirmMaster(DocumentMaster master){
         this.documentMaster = master;
-        this.id = master.getId();
+
+        if(master != null){
+            this.id = master.getId();
+        }
     }
 
     @Override
@@ -80,5 +87,17 @@ public class StatusMap extends BaseEntity implements Persistable<String> {
     @Override
     public boolean isNew() {
         return getCreatedDate() == null;
+    }
+
+    public void doApprove(ApprovalProcessRequestDTO dto, UserMaster currApprover,String docStatus) {
+        this.docStatus = docStatus;
+        this.currStep = dto.getCurrApprover().getStepSeq();
+        this.userMaster = currApprover;
+        this.currApproverName = dto.getCurrApprover().getApproverName();
+        this.currApproverDeptId = dto.getCurrApprover().getApproverDeptId();
+        this.currApproverDept = dto.getCurrApprover().getApproverDeptName();
+
+
+
     }
 }

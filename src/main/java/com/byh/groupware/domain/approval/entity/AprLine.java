@@ -1,5 +1,6 @@
 package com.byh.groupware.domain.approval.entity;
 
+import com.byh.groupware.domain.approval.dto.ApprovalProcessRequestDTO;
 import com.byh.groupware.domain.approval.dto.ApproverInfoDTO;
 import com.byh.groupware.domain.user.entity.UserMaster;
 import com.byh.groupware.global.entity.BaseEntity;
@@ -52,7 +53,7 @@ public class AprLine extends BaseEntity {
 
         if(lineDto.getStepSeq() == 1){
             this.approveStatus = "03";
-        } else if (lineDto.getStepSeq() == firstApproverSeq && lineDto.getApproveType() == "02") {
+        } else if (lineDto.getStepSeq() == firstApproverSeq && "02".equals(lineDto.getApproveType())) {
             this.approveStatus = "02";
         }else{
             this.approveStatus = "01";
@@ -70,4 +71,10 @@ public class AprLine extends BaseEntity {
     public void confirmMaster(DocumentMaster documentMaster) {
         this.documentMaster = documentMaster;
     }
+
+    public void doApprove(String approveStatus) {
+        this.approveStatus = approveStatus;
+    }
+
+
 }

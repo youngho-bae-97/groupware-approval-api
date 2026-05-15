@@ -41,7 +41,7 @@ public class ApprovalDetailResponseDTO {
     public ApprovalDetailResponseDTO(EndDocumentMaster entity, String currentUserId) {
         // 1. 기본 마스터 정보 (EndDocumentMaster)
         this.docId = entity.getId();
-        this.drafterId = entity.getMemId();
+        this.drafterId = currentUserId;
         this.drafterName = entity.getDrafterName();
         this.draftTime = entity.getCreatedDate(); // BaseEntity의 생성일자 활용
 

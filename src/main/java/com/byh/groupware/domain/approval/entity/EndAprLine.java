@@ -1,5 +1,7 @@
 package com.byh.groupware.domain.approval.entity;
 
+import com.byh.groupware.domain.approval.dto.ApproverInfoDTO;
+import com.byh.groupware.domain.user.entity.UserMaster;
 import com.byh.groupware.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -32,6 +34,25 @@ public class EndAprLine extends BaseEntity {
     private String approverJob;  // APPROVER_JOB: 결재자 직급
     private String approverDeptId;  // APPROVER_DEPT: 결재자 부서번호
     private String approverDeptName;  // APPROVER_DEPT: 결재자 부서명
+
+    private EndAprLine(AprLine aprLine){
+        this.stepSeq = aprLine.getStepSeq();
+        this.approverId = aprLine.getUserMaster().getLoginId();
+        this.approverName = aprLine.getApproverName();
+        this.approverJob = aprLine.getApproverJob();
+        this.approveType = aprLine.getApproveType();
+        this.approverDeptId = aprLine.getApproverDeptId();
+        this.approverDeptName = aprLine.getApproverDeptName();
+        this.approveStatus = aprLine.getApproveStatus();
+
+
+    }
+
+    public static EndAprLine createEndAprLine(AprLine aprLine) {
+
+        return new EndAprLine(aprLine);
+
+    }
 
     public void confirmMaster(EndDocumentMaster master) {
         this.endDocumentMaster = master;

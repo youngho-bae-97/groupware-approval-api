@@ -2,11 +2,14 @@ package com.byh.groupware.domain.approval.service;
 
 import com.byh.groupware.domain.approval.dto.*;
 import com.byh.groupware.domain.approval.entity.*;
+import com.byh.groupware.domain.approval.exception.ApprovalInvalidTypeException;
 import com.byh.groupware.domain.approval.exception.MissingApprovalLineException;
 import com.byh.groupware.domain.approval.exception.MissingNextApproverException;
 import com.byh.groupware.domain.approval.repository.*;
+import com.byh.groupware.domain.approval.type.ApprovalType;
 import com.byh.groupware.domain.user.entity.UserMaster;
 import com.byh.groupware.domain.user.repository.UserRepository;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -23,7 +26,9 @@ import org.springframework.util.StringUtils;
 import javax.swing.text.Document;
 import javax.swing.text.html.Option;
 import java.time.LocalDate;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -45,6 +50,17 @@ public class JpaApprovalService {
 
     private final ActiveDocRepository activeDocRepository;
 
+    private final List<ApprovalAction> actions;
+
+    private final Map<ApprovalType, ApprovalAction> actionMap = new EnumMap<>(ApprovalType.class);
+
+    @PostConstruct
+    public void init() {
+        for (ApprovalAction action : actions) {
+            actionMap.put(action.getActionType(), action);
+        }
+
+    }
 
     @Transactional
     public void draft(ApprovalDraftRequestDTO approvalDraftRequestDTO, UserMaster loginUser) {
@@ -171,7 +187,19 @@ public class JpaApprovalService {
     }
 
 
+    @Transactional
     public void doProcess(ApprovalProcessRequestDTO approvalProcessRequestDTO, UserMaster loginUser) {
+
+        loginUser = userRepository.findByLoginId(loginUser.getLoginId());
+        ApprovalType type = ApprovalType.valueOf(approvalProcessRequestDTO.getApproveType().toUpperCase());
+
+        ApprovalAction action = actionMap.get(type);
+
+        if (action == null) {
+            throw new ApprovalInvalidTypeException("지원하지 않는 결재 유형입니다: " + type);
+        }
+
+        action.doProcess(approvalProcessRequestDTO,loginUser);
     }
 
     public Page<StatusMap> getApprovalList(ApprovalSearchDTO dto, UserMaster loginUser, Pageable pageable) {
@@ -207,6 +235,8 @@ public class JpaApprovalService {
         if("03".equals(docStatus)){
             EndDocumentMaster endDocmaster = endDocumentMasterRepository.findWithDetailsById(docId)
                     .orElseThrow(() -> new EntityNotFoundException("해당 문서를 찾을 수 없습니다. ID: " + docId));
+
+
             detail = new ApprovalDetailResponseDTO(endDocmaster,loginId);
 
         } else {

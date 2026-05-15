@@ -1,5 +1,6 @@
 package com.byh.groupware.domain.approval.entity;
 
+import com.byh.groupware.domain.approval.dto.ApprovalDraftRequestDTO;
 import com.byh.groupware.domain.user.entity.UserMaster;
 import com.byh.groupware.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -27,17 +28,26 @@ public class EndDocumentMaster extends BaseEntity implements Persistable<String>
     private String preserveYear;       // 보존 연한
     private String rootDocId;          // 원문서 번호 (재기안/수정기안용)
     private int version;               // 문서 버전 (기본값 0)
-    private String memId;          // 기안자 사번 (FK)
+    private Long memId;          // 기안자 사번 (FK)
     private String drafterName;        // 기안자 성명 (박제)
     private String approvalFormTitle;  // 양식 명칭 (박제 - ex: 연차신청서)
 
-    @OneToOne(mappedBy = "endDocumentMaster", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "endDocumentMaster",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            orphanRemoval = true)
     private EndStatusMap endStatusMap;
 
-    @OneToOne(mappedBy = "endDocumentMaster", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "endDocumentMaster",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            orphanRemoval = true)
     private EndDoc endDoc;
 
-    @OneToMany(mappedBy = "endDocumentMaster")
+    @OneToMany(mappedBy = "endDocumentMaster",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<EndAprLine> endAprLines = new ArrayList<>();
 
     @Override
@@ -48,6 +58,26 @@ public class EndDocumentMaster extends BaseEntity implements Persistable<String>
     @Override
     public boolean isNew() {
         return getCreatedDate() == null;
+    }
+
+
+    private EndDocumentMaster(DocumentMaster documentMaster){
+        this.id = documentMaster.getId();
+        this.securityLevel = documentMaster.getSecurityLevel();
+        this.preserveYear = documentMaster.getPreserveYear();
+        this.rootDocId = documentMaster.getRootDocId();
+        this.version = documentMaster.getVersion();
+        this.drafterDept = documentMaster.getDrafterDept();
+        this.drafterName = documentMaster.getDrafterName();
+        this.approvalFormTitle = documentMaster.getApprovalFormTitle();
+        // 아래필드는 연관관계 걸려있는 엔티티들(정합성 위해서 편의 메소드 추가해줘야됨!!!)
+        this.approvalFormId = documentMaster.getDocForm().getId();
+        this.memId = documentMaster.getUserMaster().getId();
+
+    }
+
+    public static EndDocumentMaster createEndDocumentMaster(DocumentMaster documentMaster) {
+        return new EndDocumentMaster(documentMaster);
     }
 
 

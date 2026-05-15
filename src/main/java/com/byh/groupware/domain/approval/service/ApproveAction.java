@@ -6,6 +6,7 @@
 //import com.byh.groupware.domain.approval.mapper.ApprovalMapper;
 //import com.byh.groupware.domain.approval.entity.StatusMap;
 //import com.byh.groupware.domain.approval.type.ApprovalType;
+//import com.byh.groupware.domain.user.entity.UserMaster;
 //import lombok.RequiredArgsConstructor;
 //import org.springframework.stereotype.Service;
 //import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +26,7 @@
 //    // 일반 결재에 대한 결재로직
 //    @Override
 //    @Transactional(rollbackFor = Exception.class)
-//    public void doProcess(ApprovalProcessRequestDTO dto) {
+//    public void doProcess(ApprovalProcessRequestDTO dto, UserMaster userMaster) {
 //
 //        // 이미 완료된 문서인지 확인
 //        isCompletedDocment(dto);

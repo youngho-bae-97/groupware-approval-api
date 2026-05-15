@@ -34,6 +34,20 @@ public class EndDoc extends BaseEntity implements Persistable<String> {
     private String fileName;
     private String contentType;
 
+    private EndDoc(ActiveDoc activeDoc){
+        this.attachYn = activeDoc.getAttachYn();
+        this.urgentYn = activeDoc.getUrgentYn();
+        this.docTitle = activeDoc.getDocTitle();
+        this.searchContent = activeDoc.getSearchContent();
+        this.filePath = activeDoc.getFilePath();
+        this.fileName = activeDoc.getFileName();
+        this.contentType = activeDoc.getContentType();
+    }
+
+    public static EndDoc createEndDoc(ActiveDoc activeDoc) {
+        return new EndDoc(activeDoc);
+    }
+
     public void confirmMaster(EndDocumentMaster master){
         this.endDocumentMaster = master;
         this.id = master.getId();

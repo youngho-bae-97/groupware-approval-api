@@ -36,6 +36,23 @@ public class EndStatusMap extends BaseEntity implements Persistable<String> {
     private String drafter;
     private String drafterDept;
 
+    private EndStatusMap(StatusMap statusMap){
+        this.docStatus = statusMap.getDocStatus();
+        this.currStep = statusMap.getCurrStep();
+        this.currApproverId = statusMap.getUserMaster().getLoginId();
+        this.docTitle = statusMap.getDocTitle();
+        this.drafter = statusMap.getDrafter();
+        this.drafterDept = statusMap.getDrafterDept();
+        this.currApproverName = statusMap.getCurrApproverName();
+        this.currApproverDept = statusMap.getCurrApproverDept();
+        this.currApproverDeptId = statusMap.getCurrApproverDeptId();
+    }
+
+    public static EndStatusMap createEndStatusMap(StatusMap statusMap) {
+
+        return new EndStatusMap(statusMap);
+    }
+
     public void confirmMaster(EndDocumentMaster master){
         this.endDocumentMaster = master;
         this.id = master.getId();
