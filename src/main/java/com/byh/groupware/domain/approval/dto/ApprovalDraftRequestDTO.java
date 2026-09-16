@@ -19,7 +19,7 @@ public class ApprovalDraftRequestDTO {
     private String drafterDept;       // 기안자 소속부서
     private String jobGrade;          // 기안자 직급
 
-    private String approvalFormId;    // 양식 ID (FORM-01)
+    private Long docFormId;    // 양식 ID (FORM-01)
     private String approvalFormTitle;
     private String preserveYear;      // 보존 연한 (5년 등)
     private String securityLevel;     // 보안 등급 (A, B, C)
@@ -40,8 +40,8 @@ public class ApprovalDraftRequestDTO {
     private String fileName;
     private String contentType;
 
-    // 3. 문서상태관리테이블 정보들
-
+    // 3. 문서상태관련 정보들
+    private String docStatus;
 
     // 4. 결재선 정보 (동적 리스트)
     // 결재선 테이블(TBL_APRLINE)에 순서대로 들어갈 정보들입니다.

@@ -36,11 +36,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JpaApprovalService {
 
-    private final StatusMapRepository statusMapRepository;
+//    private final StatusMapRepository statusMapRepository;
 
     private final DocumentMasterRepository documentMasterRepository;
 
     private final EndDocumentMasterRepository endDocumentMasterRepository;
+
+    private final EndDocRepository endDocRepository;
 
     private final DocFormRepository docFormRepository;
 
@@ -49,6 +51,8 @@ public class JpaApprovalService {
     private final UserRepository userRepository;
 
     private final ActiveDocRepository activeDocRepository;
+
+    private final AprLineRepository aprLineRepository;
 
     private final List<ApprovalAction> actions;
 
@@ -67,26 +71,26 @@ public class JpaApprovalService {
 
         loginUser = userRepository.findByLoginId(loginUser.getLoginId());
 
-        Optional<DocForm> docForm = docFormRepository.findById(approvalDraftRequestDTO.getApprovalFormId());
+        Optional<DocForm> docForm = docFormRepository.findById(approvalDraftRequestDTO.getDocFormId());
 
         String currentYear = String.valueOf(LocalDate.now().getYear());
 
-        Long exist = noMasterRepository.countById(new NoMasterId(currentYear, docForm.get().getId()));
+        Long exist = noMasterRepository.countByYearAndDocForm_Id(currentYear,docForm.get().getId());
 
         // 새로운 채번의 경우 연도와 양식명으로 번호가0인 새로운 레코드를 추가해야됨
         NoMaster noMaster;
         if(exist == 0){
              ;
             noMasterRepository.save(NoMaster.createDocNo(currentYear, docForm.get()));
-            noMaster = noMasterRepository.findLockById(new NoMasterId(currentYear, docForm.get().getId()));
+            noMaster = noMasterRepository.findLockByYearAndDocFormId(currentYear,docForm.get().getId());
         }else{
-             noMaster = noMasterRepository.findLockById(new NoMasterId(currentYear, docForm.get().getId()));
+             noMaster = noMasterRepository.findLockByYearAndDocFormId(currentYear, docForm.get().getId());
         }
 
 
         Integer updatedSeq = noMaster.updateSeq();
 
-        String newDocNo = currentYear + docForm.get().getId() + String.format("%05d", updatedSeq);
+        String newDocNo = currentYear + docForm.get().getApprovalFormId() + String.format("%05d", updatedSeq);
 
 //        approvalDraftRequestDTO.setDrafterId(loginUser.getLoginId());
 //        approvalDraftRequestDTO.setDrafterName(loginUser.getMemName());
@@ -114,6 +118,10 @@ public class JpaApprovalService {
         // 문서 마스터 관련 처리 끝=========================
 
         // 진행문서 생성 시작 =======================
+        String initialDocStatus = "02";
+
+        approvalDraftRequestDTO.setDocStatus(initialDocStatus);
+
         String plainText = refineDocContent(approvalDraftRequestDTO.getDocContent());
 
         approvalDraftRequestDTO.setDocContent(plainText);
@@ -128,7 +136,7 @@ public class JpaApprovalService {
         // 진행문서 생성 끝 =======================
 
         // ====문서상태관리 엔티티 관련 처리 시작 ======================
-
+        /*
         List<ApproverInfoDTO> aprLines = approvalDraftRequestDTO.getApprovalLines();
         ApproverInfoDTO nextApprover = null;
 
@@ -152,13 +160,16 @@ public class JpaApprovalService {
 
         StatusMap statusMap = StatusMap.createStatusMap(approvalDraftRequestDTO, nextMember, nextApprover, initialDocStatus);
         documentMaster.addStatusMap(statusMap);
+        */
         // ====문서상태관리 엔티티 관련 처리 끝 ======================
 
         // === 진행문서 결재선 엔티티 관련 처리 시작 =============
         //List<ApproverInfoDTO> aprLines2 = approvalDraftRequestDTO.getApprovalLines();
 
         // 첫 번째 결재자 순번을 찾기 위한 변수 (초기값은 아주 큰 값으로 설정)
+        List<ApproverInfoDTO> aprLines = approvalDraftRequestDTO.getApprovalLines();
         int firstApproverSeq = Integer.MAX_VALUE;
+
 
         for (ApproverInfoDTO line : aprLines) {
             // 1. 기안자(1번)는 제외
@@ -175,7 +186,7 @@ public class JpaApprovalService {
         for(ApproverInfoDTO line : aprLines){
             UserMaster approver = userRepository.findByLoginId(line.getApproverId());
             AprLine aprLine = AprLine.createAprLine(line, firstApproverSeq, approver);
-            documentMaster.addAprLine(aprLine);
+            activeDoc.addAprLine(aprLine);
         }
 
 
@@ -202,13 +213,13 @@ public class JpaApprovalService {
         action.doProcess(approvalProcessRequestDTO,loginUser);
     }
 
-    public Page<StatusMap> getApprovalList(ApprovalSearchDTO dto, UserMaster loginUser, Pageable pageable) {
+    public Page<ActiveDoc> getApprovalList(ApprovalSearchDTO dto, UserMaster loginUser, Pageable pageable) {
         dto.setLoginMemId(loginUser.getLoginId());
         //dto.setLoginDeptCode(loginUser.getDeptCode());
 
-        Page<StatusMap> statusMaps = statusMapRepository.docToDoList(pageable,loginUser.getLoginId());
+        Page<ActiveDoc> activeDocs = activeDocRepository.docToDoList(pageable,loginUser.getLoginId());
 
-        return statusMaps;
+        return activeDocs;
 //        return approvalMapper.selectApprovalList(dto);
 
 
@@ -228,21 +239,24 @@ public class JpaApprovalService {
 
     }
 
-    public ApprovalDetailResponseDTO getApprovalDetail(String docId, String docStatus, String loginId) {
+    public ApprovalDetailResponseDTO getApprovalDetail(Long docId, String docStatus, String loginId) {
 
         ApprovalDetailResponseDTO detail;
 
         if("03".equals(docStatus)){
-            EndDocumentMaster endDocmaster = endDocumentMasterRepository.findWithDetailsById(docId)
+            EndDoc endDoc = endDocRepository.findWithDetailsById(docId)
                     .orElseThrow(() -> new EntityNotFoundException("해당 문서를 찾을 수 없습니다. ID: " + docId));
 
 
-            detail = new ApprovalDetailResponseDTO(endDocmaster,loginId);
+            detail = new ApprovalDetailResponseDTO(endDoc,loginId);
 
         } else {
-            DocumentMaster docMaster = documentMasterRepository.findWithDetailsById(docId)
+            ActiveDoc activeDoc = activeDocRepository.findWithDetailsById(docId)
                     .orElseThrow(() -> new EntityNotFoundException("해당 문서를 찾을 수 없습니다. ID: " + docId));
-            detail = new ApprovalDetailResponseDTO(docMaster,loginId);
+
+            String currApprover = aprLineRepository.findCurrApprover(docId).getUserMaster().getLoginId();
+
+            detail = new ApprovalDetailResponseDTO(activeDoc,loginId,currApprover);
         }
 
         boolean isParticipant = detail.getApproverLines().stream()

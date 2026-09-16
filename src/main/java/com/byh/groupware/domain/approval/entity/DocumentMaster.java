@@ -18,16 +18,19 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "tbl_document_master")
-public class DocumentMaster extends BaseEntity implements Persistable<String> {
+public class DocumentMaster extends BaseEntity {
 
-    @Id
-    @Column(name = "doc_id")
-    private String id;              // 문서번호 (PK)
+    @Id @GeneratedValue
+    @Column(name = "document_master_id")
+    private Long id;  // 문서마스터번호 (PK)
+
+    @Column(unique = true)
+    private String docId;     // 문서번호 (Unique)
 
 //    private LocalDateTime draftTime;    // 기안 일시
     private String drafterDept;        // 기안 당시 부서 (박제)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "approval_form_id")
+    @JoinColumn(name = "docform_id")
     private DocForm docForm;     // 결재 양식 ID (FK)
     private String securityLevel;      // 보안 등급 (S, A, B...)
     private String preserveYear;       // 보존 연한
@@ -39,11 +42,11 @@ public class DocumentMaster extends BaseEntity implements Persistable<String> {
     private String drafterName;        // 기안자 성명 (박제)
     private String approvalFormTitle;  // 양식 명칭 (박제 - ex: 연차신청서)
 
-    @OneToOne(mappedBy = "documentMaster",
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
-            fetch = FetchType.LAZY,
-            orphanRemoval = true)
-    private StatusMap statusMap;
+//    @OneToOne(mappedBy = "documentMaster",
+//            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+//            fetch = FetchType.LAZY,
+//            orphanRemoval = true)
+//    private StatusMap statusMap;
 
     @OneToOne(mappedBy = "documentMaster",
             cascade = CascadeType.ALL,
@@ -51,19 +54,19 @@ public class DocumentMaster extends BaseEntity implements Persistable<String> {
             orphanRemoval = true)
     private ActiveDoc activeDoc;
 
-    @OneToMany(mappedBy = "documentMaster",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true)
-    private List<AprLine> aprLines = new ArrayList<>();
+//    @OneToMany(mappedBy = "documentMaster",
+//            cascade = CascadeType.ALL,
+//            orphanRemoval = true)
+//    private List<AprLine> aprLines = new ArrayList<>();
 
     private DocumentMaster(ApprovalDraftRequestDTO approvalDraftRequestDTO, UserMaster userMaster, DocForm docForm){
-        this.id = approvalDraftRequestDTO.getDocId();
+        this.docId = approvalDraftRequestDTO.getDocId();
         this.securityLevel = approvalDraftRequestDTO.getSecurityLevel();
         this.preserveYear = approvalDraftRequestDTO.getPreserveYear();
         this.rootDocId = approvalDraftRequestDTO.getRootDocId();
         this.version = approvalDraftRequestDTO.getVersion();
-        this.drafterDept = approvalDraftRequestDTO.getDrafterDept();
-        this.drafterName = approvalDraftRequestDTO.getDrafterName();
+        this.drafterDept = userMaster.getDeptName();
+        this.drafterName = userMaster.getMemName();
         this.approvalFormTitle = approvalDraftRequestDTO.getApprovalFormTitle();
         // 아래필드는 연관관계 걸려있는 엔티티들(정합성 위해서 편의 메소드 추가해줘야됨!!!)
         this.userMaster = userMaster;
@@ -75,22 +78,23 @@ public class DocumentMaster extends BaseEntity implements Persistable<String> {
         return new DocumentMaster(approvalDraftRequestDTO, userMaster,docForm);
     }
 
-    @Override
-    public String getId(){
-        return id;
-    }
+//    @Override
+//    public String getId(){
+//        return id;
+//    }
+//
+//    @Override
+//    public boolean isNew() {
+//        return getCreatedDate() == null;
+//    }
 
-    @Override
-    public boolean isNew() {
-        return getCreatedDate() == null;
-    }
-    public void addStatusMap(StatusMap statusMap){
-        this.statusMap = statusMap;
-
-        if(statusMap.getDocumentMaster() != this){
-            statusMap.confirmMaster(this);
-        }
-    }
+//    public void addStatusMap(StatusMap statusMap){
+//        this.statusMap = statusMap;
+//
+//        if(statusMap.getDocumentMaster() != this){
+//            statusMap.confirmMaster(this);
+//        }
+//    }
     public void addActiveDoc(ActiveDoc activeDoc){
         this.activeDoc = activeDoc;
 
@@ -99,22 +103,22 @@ public class DocumentMaster extends BaseEntity implements Persistable<String> {
         }
     }
 
-    public void addAprLine(AprLine aprLine){
-        this.aprLines.add(aprLine);
+//    public void addAprLine(AprLine aprLine){
+//        this.aprLines.add(aprLine);
+//
+//        if(aprLine.getDocumentMaster() != this){
+//            aprLine.confirmMaster(this);
+//        }
+//    }
 
-        if(aprLine.getDocumentMaster() != this){
-            aprLine.confirmMaster(this);
-        }
-    }
-
-    public void removeStatusMap(){
-
-        if(this.statusMap != null){
-            this.statusMap.confirmMaster(null);
-        }
-
-        this.statusMap = null;
-    }
+//    public void removeStatusMap(){
+//
+//        if(this.statusMap != null){
+//            this.statusMap.confirmMaster(null);
+//        }
+//
+//        this.statusMap = null;
+//    }
 
     public void removeActiveDoc(){
 
@@ -125,14 +129,14 @@ public class DocumentMaster extends BaseEntity implements Persistable<String> {
         this.activeDoc = null;
     }
 
-    public void removeAprLines(){
-
-        for(AprLine aprLine : this.aprLines){
-            aprLine.confirmMaster(null);
-        }
-
-        this.aprLines.clear();
-    }
+//    public void removeAprLines(){
+//
+//        for(AprLine aprLine : this.aprLines){
+//            aprLine.confirmMaster(null);
+//        }
+//
+//        this.aprLines.clear();
+//    }
 
 
 }

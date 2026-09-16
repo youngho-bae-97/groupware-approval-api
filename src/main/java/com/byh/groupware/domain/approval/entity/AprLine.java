@@ -25,16 +25,18 @@ public class AprLine extends BaseEntity {
 
     private Integer stepSeq;       // STEP_SEQ: 결재 순번 (1: 기안자, 2: 1차결재자...)
 
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doc_id")
-    private DocumentMaster documentMaster;
+    @JoinColumn(name = "activedoc_id")
+    private ActiveDoc activeDoc;
+
 
     private String approveType;    // APPROVE_TYPE: 결재 유형 (01:기안, 02:결재, 03:합의 등)
     private String approveStatus;  // APPROVE_STATUS: 결재 상태 (01:대기, 02:승인, 03:반려)
     private String approveReason;  // APPROVE_REASON: 반려 사유
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mem_id")
+    @JoinColumn(name = "mem_id", nullable = false)
     private UserMaster userMaster;     // APPROVER_ID: 결재자 사번/ID
 
     private String approverName;   // APPROVER_NAME: 결재자 성명
@@ -44,6 +46,7 @@ public class AprLine extends BaseEntity {
 
     private AprLine(ApproverInfoDTO lineDto, int firstApproverSeq,UserMaster userMaster){
         this.stepSeq = lineDto.getStepSeq();
+
         this.userMaster = userMaster;
         this.approverName = lineDto.getApproverName();
         this.approverJob = lineDto.getApproverJob();
@@ -68,8 +71,8 @@ public class AprLine extends BaseEntity {
 
     }
 
-    public void confirmMaster(DocumentMaster documentMaster) {
-        this.documentMaster = documentMaster;
+    public void confirmActiveDoc(ActiveDoc activeDoc) {
+        this.activeDoc = activeDoc;
     }
 
     public void doApprove(String approveStatus) {

@@ -7,24 +7,34 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.data.domain.Persistable;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "tbl_activedoc")
-public class ActiveDoc extends BaseEntity implements Persistable<String> {
-    @Id
-    @Column(name = "doc_id")
-    private String id;
+public class ActiveDoc extends BaseEntity {
+    @Id @GeneratedValue
+    @Column(name = "activedoc_id")
+    private Long id;
 
-    @MapsId
+
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doc_id")
+    @JoinColumn(name = "document_master_id")
     private DocumentMaster documentMaster;
+
+
+    @OneToMany(mappedBy = "activeDoc",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    @BatchSize(size = 100)
+    private List<AprLine> aprLines = new ArrayList<>();
 
     private String attachYn;
     private String urgentYn;
@@ -33,6 +43,8 @@ public class ActiveDoc extends BaseEntity implements Persistable<String> {
     private String filePath;
     private String fileName;
     private String contentType;
+    // 2026.09.15 문서상태 컬럼 새로 추가
+    private String docStatus;
 
     private ActiveDoc(ApprovalDraftRequestDTO approvalDraftRequestDTO){
         this.attachYn = approvalDraftRequestDTO.getAttachYn();
@@ -42,6 +54,7 @@ public class ActiveDoc extends BaseEntity implements Persistable<String> {
         this.filePath = approvalDraftRequestDTO.getFilePath();
         this.fileName = approvalDraftRequestDTO.getFileName();
         this.contentType = approvalDraftRequestDTO.getContentType();
+        this.docStatus = approvalDraftRequestDTO.getDocStatus();
     }
 
     public static ActiveDoc createActiveDoc(ApprovalDraftRequestDTO approvalDraftRequestDTO) {
@@ -56,17 +69,36 @@ public class ActiveDoc extends BaseEntity implements Persistable<String> {
         }
     }
 
-    @Override
-    public String getId(){
-        return id;
+    public void addAprLine(AprLine aprLine){
+        this.aprLines.add(aprLine);
+
+        if(aprLine.getActiveDoc() != this){
+            aprLine.confirmActiveDoc(this);
+        }
     }
 
-    @Override
-    public boolean isNew() {
-        return getCreatedDate() == null;
+    public void removeAprLines(){
+
+        for(AprLine aprLine : this.aprLines){
+            aprLine.confirmActiveDoc(null);
+        }
+
+        this.aprLines.clear();
     }
 
-    public void doApprove(String docTitle, String docContent) {
+//    @Override
+//    public Long getId(){
+//        return id;
+//    }
+//
+//    @Override
+//    public boolean isNew() {
+//        return getCreatedDate() == null;
+//    }
+
+    public void doApprove(String docTitle, String docContent,String docStatus) {
+
+        this.docStatus = docStatus;
 
         if(!ObjectUtils.isEmpty(docTitle)){
             this.docTitle = docTitle;

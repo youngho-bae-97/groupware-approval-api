@@ -24,7 +24,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JpaApproveAction implements ApprovalAction{
 
-    private final StatusMapRepository statusMapRepository;
+//    private final StatusMapRepository statusMapRepository;
 
     private final AprLineRepository aprLineRepository;
 
@@ -145,13 +145,15 @@ public void doProcess(
             UserMaster loginUser
     ) {
 
-        StatusMap statusMap =
-                statusMapRepository.findById(dto.getDocId())
-                        .orElseThrow(() ->
-                                new IllegalArgumentException("문서가 존재하지 않습니다."));
+//        StatusMap statusMap =
+//                statusMapRepository.findById(dto.getDocId())
+//                        .orElseThrow(() ->
+//                                new IllegalArgumentException("문서가 존재하지 않습니다."));
+
+        Optional<ActiveDoc> activeDoc = activeDocRepository.findById(dto.getActiveDocId());
 
         // 결재 가능 상태 확인
-        if (!"02".equals(statusMap.getDocStatus())) {
+        if (!"02".equals(activeDoc.get().getDocStatus())) {
             throw new DocStatusMissMatchException(
                     "결재 가능한 상태가 아닙니다."
             );
@@ -160,7 +162,7 @@ public void doProcess(
         // 결재 권한 확인
         long cnt =
                 aprLineRepository.countApproverLine(
-                        dto.getDocId(),
+                        dto.getActiveDocId(),
                         loginUser.getLoginId(),
                         "02",
                         Arrays.asList("02", "03")
@@ -182,7 +184,7 @@ public void doProcess(
 
         long remainCnt =
                 aprLineRepository.countRemainingApprovers(
-                        dto.getDocId(),
+                        dto.getActiveDocId(),
                         dto.getProcessorId()
                 );
 
@@ -198,15 +200,16 @@ public void doProcess(
     ) {
 
         // StatusMap 조회
-        StatusMap statusMap =
-                statusMapRepository.findById(dto.getDocId())
-                        .orElseThrow(() ->
-                                new IllegalArgumentException("상태 정보가 존재하지 않습니다."));
+//        StatusMap statusMap =
+//                statusMapRepository.findById(dto.getDocId())
+//                        .orElseThrow(() ->
+//                                new IllegalArgumentException("상태 정보가 존재하지 않습니다."));
+        Optional<ActiveDoc> activeDoc = activeDocRepository.findById(dto.getActiveDocId());
 
         // 다음 결재자 조회
         Slice<AprLine> nextLineSlice =
                 aprLineRepository.findNextAprLineById(
-                        dto.getDocId(),
+                        dto.getActiveDocId(),
                         dto.getProcessorId(),
                         PageRequest.of(0, 1)
                 );
@@ -228,12 +231,12 @@ public void doProcess(
                         new IllegalArgumentException("다음 결재자가 존재하지 않습니다."));
 
         // 상태 변경
-        statusMap.doApprove(dto, currApprover, "02");
-
+//        statusMap.doApprove(dto, currApprover, "02");
+//        activeDoc.doApprove(dto,"02");
         // 현재 결재선 승인 처리
         AprLine currLine =
                 aprLineRepository.findCurrAprLine(
-                        dto.getDocId(),
+                        dto.getActiveDocId(),
                         dto.getProcessorId()
                 );
 
@@ -243,7 +246,7 @@ public void doProcess(
         nextLine.doApprove("02");
 
         // ActiveDoc 수정
-        updateActiveDoc(dto);
+        updateActiveDoc(dto,"02");
     }
 
     /**
@@ -255,13 +258,14 @@ public void doProcess(
     ) {
 
         // 비관적 락으로 상태 조회
-        StatusMap statusMap =
-                statusMapRepository.findForFinalApprove(
-                        dto.getDocId()
-                );
+//        StatusMap statusMap =
+//                statusMapRepository.findForFinalApprove(
+//                        dto.getDocId()
+//                );
+        Optional<ActiveDoc> activeDoc = activeDocRepository.findByIdForUpdate(dto.getActiveDocId());
 
         // 락 획득 후 상태 재검증
-        if (!"02".equals(statusMap.getDocStatus())) {
+        if (!"02".equals(activeDoc.get().getDocStatus())) {
             throw new DocStatusMissMatchException(
                     "이미 처리된 문서입니다."
             );
@@ -270,7 +274,7 @@ public void doProcess(
         // 현재 결재선 조회
         AprLine currLine =
                 aprLineRepository.findCurrAprLine(
-                        dto.getDocId(),
+                        dto.getActiveDocId(),
                         dto.getProcessorId()
                 );
 
@@ -280,13 +284,13 @@ public void doProcess(
 
         dto.setCurrApprover(currLine);
         // 최종 상태 변경
-        statusMap.doApprove(dto, currApprover, "03");
+//        statusMap.doApprove(dto, currApprover, "03");
 
         // 현재 결재선 완료
         currLine.doApprove("03");
 
         // ActiveDoc 수정
-        updateActiveDoc(dto);
+        updateActiveDoc(dto,"03");
 
         // hot -> cold 이관
         archiveDocument(dto);
@@ -296,17 +300,19 @@ public void doProcess(
      * ActiveDoc 수정
      */
     private void updateActiveDoc(
-            ApprovalProcessRequestDTO dto
+            ApprovalProcessRequestDTO dto,
+            String docStatus
     ) {
 
         ActiveDoc activeDoc =
-                activeDocRepository.findById(dto.getDocId())
+                activeDocRepository.findById(dto.getActiveDocId())
                         .orElseThrow(() ->
                                 new IllegalArgumentException("문서 본문이 존재하지 않습니다."));
 
         activeDoc.doApprove(
                 dto.getDocTitle(),
-                dto.getDocContent()
+                dto.getDocContent(),
+                docStatus
         );
     }
 
@@ -319,43 +325,47 @@ public void doProcess(
 
         DocumentMaster documentMaster =
                 documentMasterRepository.findFetchedDocumentMasterById(
-                        dto.getDocId()
+                        dto.getDocMasterId()
                 );
 
+        // DocumentMaster 복사
         EndDocumentMaster endDocumentMaster =
                 EndDocumentMaster.createEndDocumentMaster(
                         documentMaster
                 );
 
-        // ActiveDoc 복사
-        endDocumentMaster.addEndDoc(
-                EndDoc.createEndDoc(
-                        documentMaster.getActiveDoc()
-                )
-        );
-
-        // StatusMap 복사
-        endDocumentMaster.addEndStatusMap(
-                EndStatusMap.createEndStatusMap(
-                        documentMaster.getStatusMap()
-                )
-        );
+        EndDoc endDoc = EndDoc.createEndDoc(documentMaster.getActiveDoc());
 
         // AprLine 복사
-        for (AprLine line : documentMaster.getAprLines()) {
+        for (AprLine line : documentMaster.getActiveDoc().getAprLines()) {
 
-            endDocumentMaster.addEndAprLine(
+            endDoc.addEndAprLine(
                     EndAprLine.createEndAprLine(line)
             );
         }
+
+        // ActiveDoc 복사
+        endDocumentMaster.addEndDoc(
+                endDoc
+        );
+
+
+        // StatusMap 복사
+//        endDocumentMaster.addEndStatusMap(
+//                EndStatusMap.createEndStatusMap(
+//                        documentMaster.getStatusMap()
+//                )
+//        );
+
 
         // cold 저장
         endDocumentMasterRepository.save(endDocumentMaster);
 
         // hot 제거 (orphanRemoval)
-        documentMaster.removeStatusMap();
+//        documentMaster.removeStatusMap();
         documentMaster.removeActiveDoc();
-        documentMaster.removeAprLines();
+
+//        documentMaster.removeAprLines();
     }
 
 }

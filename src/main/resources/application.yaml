@@ -40,11 +40,14 @@ spring:
 #  mapper-locations: classpath:mapper/**/*.xml
 logging:
   level:
-    root: info
-    com.byh.groupware: debug          # 내 패키지 로그는 상세히
-    org.hibernate.SQL: debug          # 하이버네이트가 날리는 SQL 확인
-    org.hibernate.type.descriptor.sql: trace # SQL 파라미터 값까지 확인
-    org.springframework.web: debug    # 웹 요청 관련 로그
+    root: INFO
+    com.byh.groupware: DEBUG
+    org.hibernate.SQL: DEBUG
+    # Spring Boot 3.x (Hibernate 6) 기준 SQL 바인딩 파라미터 확인:
+    org.hibernate.orm.jdbc.bind: TRACE
+    # Spring Boot 2.x (Hibernate 5)인 경우 아래 주석 해제:
+    # org.hibernate.type.descriptor.sql: TRACE
+    org.springframework.web: DEBUG
 #logging:
 #  level:
 #    org.hibernate.SQL: debug

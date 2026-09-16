@@ -15,33 +15,33 @@ import java.util.Map;
 public interface AprLineRepository extends JpaRepository<AprLine, Long> {
 
     @Query("SELECT COUNT(a) FROM AprLine a " +
-            "WHERE a.documentMaster.id = :docId " +
+            "WHERE a.activeDoc.id = :activeDocId " +
             "AND a.userMaster.loginId = :processorId " +
             "AND a.approveStatus = :status " +
             "AND a.approveType IN :types")
     long countApproverLine(
-            @Param("docId") String docId,
+            @Param("activeDocId") Long activeDocId,
             @Param("processorId") String processorId,
             @Param("status") String status,
             @Param("types") List<String> types
     );
 
     @Query("SELECT COUNT(a) FROM AprLine a " +
-            "WHERE a.documentMaster.id = :docId " +
+            "WHERE a.activeDoc.id = :activeDocId " +
             "AND a.approveType = '02' " +
             "AND a.stepSeq > (" +
             "    SELECT a2.stepSeq FROM AprLine a2 " +
-            "    WHERE a2.documentMaster.id = :docId " +
+            "    WHERE a2.activeDoc.id = :activeDocId " +
             "    AND a2.userMaster.loginId = :processorId" +
             ")")
-    long countRemainingApprovers(@Param("docId") String docId,
+    long countRemainingApprovers(@Param("activeDocId") Long activeDocId,
                                  @Param("processorId") String processorId);
 
-    @Query("SELECT a FROM AprLine a " +
-            "WHERE a.documentMaster.id = :docId " +
-            "AND a.userMaster.loginId = :processorId " +
-            "AND a.approveStatus = '02'")
-    Slice<AprLine> findFinalAprLineById(@Param("docId") String docId, @Param("processorId") String processorId, Pageable pageable);
+//    @Query("SELECT a FROM AprLine a " +
+//            "WHERE a.documentMaster.id = :docId " +
+//            "AND a.userMaster.loginId = :processorId " +
+//            "AND a.approveStatus = '02'")
+//    Slice<AprLine> findFinalAprLineById(@Param("docId") Long docId, @Param("processorId") String processorId, Pageable pageable);
 
 //    @Query("SELECT a FROM AprLine a " +
 //            "WHERE a.documentMaster.id = :docId " +
@@ -58,11 +58,11 @@ public interface AprLineRepository extends JpaRepository<AprLine, Long> {
     @Query("""
     SELECT a
     FROM AprLine a
-    WHERE a.documentMaster.id = :docId
+    WHERE a.activeDoc.id = :activeDocId
     AND a.stepSeq > (
         SELECT MAX(a2.stepSeq)
         FROM AprLine a2
-        WHERE a2.documentMaster.id = :docId
+        WHERE a2.activeDoc.id = :activeDocId
         AND a2.userMaster.loginId = :processorId
     )
     AND a.approveStatus = '01'
@@ -70,14 +70,23 @@ public interface AprLineRepository extends JpaRepository<AprLine, Long> {
     ORDER BY a.stepSeq ASC
 """)
     Slice<AprLine> findNextAprLineById(
-            @Param("docId") String docId,
+            @Param("activeDocId") Long activeDocId,
             @Param("processorId") String processorId,
             Pageable pageable
     );
 
     @Query("SELECT a FROM AprLine a " +
-            "WHERE a.documentMaster.id = :docId " +
+            "WHERE a.activeDoc.id = :activeDocId " +
             "AND a.userMaster.loginId = :processorId " +
             "AND a.approveStatus = '02'")
-    AprLine findCurrAprLine(String docId, String processorId);
+    AprLine findCurrAprLine(Long activeDocId, String processorId);
+
+    @Query("""
+    select a
+    from AprLine a
+    where a.activeDoc.id = :activeDocId
+      and a.approveStatus = '02'
+    order by a.stepSeq
+    """)
+    AprLine findCurrApprover(Long activeDocId);
 }

@@ -2,14 +2,17 @@ package com.byh.groupware.domain.approval.dto;
 
 import com.byh.groupware.domain.approval.entity.AprLine;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 public class ApprovalProcessRequestDTO {
-    @NotBlank(message = "문서번호는 필수입니다.")
-    private String docId;
+    @NotNull(message = "문서마스터번호는 필수입니다.")
+    private Long docMasterId;
+    @NotNull(message = "진행문서번호는 필수입니다.")
+    private Long activeDocId;
     private String processorId;         // 결재자 사번
     private String processorName;       // 결재자 이름
     private String processorDept;       // 결재자 소속부서

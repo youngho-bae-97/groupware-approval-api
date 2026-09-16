@@ -9,9 +9,9 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface EndDocumentMasterRepository extends JpaRepository<EndDocumentMaster, String> {
+public interface EndDocumentMasterRepository extends JpaRepository<EndDocumentMaster, Long> {
 
-    @EntityGraph(attributePaths = {"endDoc", "endStatusMap", "aprLines"})
-    Optional<EndDocumentMaster> findWithDetailsById(String id);
+//    @EntityGraph(attributePaths = {"endDoc", "endStatusMap", "aprLines"})
+//    Optional<EndDocumentMaster> findWithDetailsById(String id);
 
 }

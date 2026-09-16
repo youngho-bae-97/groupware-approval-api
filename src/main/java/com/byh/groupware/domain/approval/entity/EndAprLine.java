@@ -22,8 +22,8 @@ public class EndAprLine extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doc_id")
-    private EndDocumentMaster endDocumentMaster;          // DOC_ID: 문서 번호
+    @JoinColumn(name = "enddoc_id")
+    private EndDoc endDoc;          // DOC_ID: 문서 번호
 
     private Integer stepSeq;       // STEP_SEQ: 결재 순번 (1: 기안자, 2: 1차결재자...)
     private String approveType;    // APPROVE_TYPE: 결재 유형 (01:기안, 02:결재, 03:합의 등)
@@ -54,7 +54,7 @@ public class EndAprLine extends BaseEntity {
 
     }
 
-    public void confirmMaster(EndDocumentMaster master) {
-        this.endDocumentMaster = master;
+    public void confirmEndDoc(EndDoc endDoc) {
+        this.endDoc = endDoc;
     }
 }

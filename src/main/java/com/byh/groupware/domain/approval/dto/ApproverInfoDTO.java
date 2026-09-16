@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ApproverInfoDTO {
     private Integer stepSeq;
-    private String docId;
+    private Long activeDocId;
+    private Long endDocId;
     private String approverId;
     private String approverName; // 성명
     private String approverJob;  // 추가: 직급 (ex: 과장, 차장)
@@ -27,7 +28,7 @@ public class ApproverInfoDTO {
         if (entity != null) {
             this.stepSeq = entity.getStepSeq();
             // EndDocumentMaster와의 연관관계가 있다면 getId()로 가져옵니다.
-            this.docId = (entity.getEndDocumentMaster() != null) ? entity.getEndDocumentMaster().getId() : null;
+            this.endDocId = (entity.getEndDoc().getId() != null) ? entity.getEndDoc().getId() : null;
             this.approverId = entity.getApproverId();
             this.approverName = entity.getApproverName();
             this.approverJob = entity.getApproverJob();
@@ -45,7 +46,7 @@ public class ApproverInfoDTO {
         if (entity != null) {
             this.stepSeq = entity.getStepSeq();
             // DocumentMaster와의 연관관계에서 ID 추출
-            this.docId = (entity.getDocumentMaster() != null) ? entity.getDocumentMaster().getId() : null;
+            this.activeDocId = (entity.getActiveDoc().getId() != null) ? entity.getActiveDoc().getId() : null;
             this.approverId = entity.getUserMaster().getLoginId();
             this.approverName = entity.getApproverName();
             this.approverJob = entity.getApproverJob();

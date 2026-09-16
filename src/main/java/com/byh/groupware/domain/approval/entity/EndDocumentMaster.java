@@ -16,10 +16,13 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "tbl_end_document_master")
-public class EndDocumentMaster extends BaseEntity implements Persistable<String> {
-    @Id
-    @Column(name = "doc_id")
-    private String id;              // 문서번호 (PK)
+public class EndDocumentMaster extends BaseEntity {
+    @Id @GeneratedValue
+    @Column(name = "end_document_master_id")
+    private Long id;
+
+    @Column(unique = true)
+    private String docId;              // 문서번호 (Unique)
 
     //    private LocalDateTime draftTime;    // 기안 일시
     private String drafterDept;        // 기안 당시 부서 (박제)
@@ -32,11 +35,11 @@ public class EndDocumentMaster extends BaseEntity implements Persistable<String>
     private String drafterName;        // 기안자 성명 (박제)
     private String approvalFormTitle;  // 양식 명칭 (박제 - ex: 연차신청서)
 
-    @OneToOne(mappedBy = "endDocumentMaster",
-            cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY,
-            orphanRemoval = true)
-    private EndStatusMap endStatusMap;
+//    @OneToOne(mappedBy = "endDocumentMaster",
+//            cascade = CascadeType.ALL,
+//            fetch = FetchType.LAZY,
+//            orphanRemoval = true)
+//    private EndStatusMap endStatusMap;
 
     @OneToOne(mappedBy = "endDocumentMaster",
             cascade = CascadeType.ALL,
@@ -44,25 +47,25 @@ public class EndDocumentMaster extends BaseEntity implements Persistable<String>
             orphanRemoval = true)
     private EndDoc endDoc;
 
-    @OneToMany(mappedBy = "endDocumentMaster",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<EndAprLine> endAprLines = new ArrayList<>();
+//    @OneToMany(mappedBy = "endDocumentMaster",
+//            cascade = CascadeType.ALL,
+//            orphanRemoval = true
+//    )
+//    private List<EndAprLine> endAprLines = new ArrayList<>();
 
-    @Override
-    public String getId(){
-        return id;
-    }
-
-    @Override
-    public boolean isNew() {
-        return getCreatedDate() == null;
-    }
+//    @Override
+//    public String getId(){
+//        return id;
+//    }
+//
+//    @Override
+//    public boolean isNew() {
+//        return getCreatedDate() == null;
+//    }
 
 
     private EndDocumentMaster(DocumentMaster documentMaster){
-        this.id = documentMaster.getId();
+        this.docId = documentMaster.getDocId();
         this.securityLevel = documentMaster.getSecurityLevel();
         this.preserveYear = documentMaster.getPreserveYear();
         this.rootDocId = documentMaster.getRootDocId();
@@ -71,7 +74,7 @@ public class EndDocumentMaster extends BaseEntity implements Persistable<String>
         this.drafterName = documentMaster.getDrafterName();
         this.approvalFormTitle = documentMaster.getApprovalFormTitle();
         // 아래필드는 연관관계 걸려있는 엔티티들(정합성 위해서 편의 메소드 추가해줘야됨!!!)
-        this.approvalFormId = documentMaster.getDocForm().getId();
+        this.approvalFormId = documentMaster.getDocForm().getApprovalFormId();
         this.memId = documentMaster.getUserMaster().getId();
 
     }
@@ -81,13 +84,13 @@ public class EndDocumentMaster extends BaseEntity implements Persistable<String>
     }
 
 
-    public void addEndStatusMap(EndStatusMap endStatusMap){
-        this.endStatusMap = endStatusMap;
-
-        if(endStatusMap.getEndDocumentMaster() != this){
-            endStatusMap.confirmMaster(this);
-        }
-    }
+//    public void addEndStatusMap(EndStatusMap endStatusMap){
+//        this.endStatusMap = endStatusMap;
+//
+//        if(endStatusMap.getEndDocumentMaster() != this){
+//            endStatusMap.confirmMaster(this);
+//        }
+//    }
 
     public void addEndDoc(EndDoc endDoc){
         this.endDoc = endDoc;
@@ -97,11 +100,11 @@ public class EndDocumentMaster extends BaseEntity implements Persistable<String>
         }
     }
 
-    public void addEndAprLine(EndAprLine endAprLine){
-        this.endAprLines.add(endAprLine);
-
-        if(endAprLine.getEndDocumentMaster() != this){
-            endAprLine.confirmMaster(this);
-        }
-    }
+//    public void addEndAprLine(EndAprLine endAprLine){
+//        this.endAprLines.add(endAprLine);
+//
+//        if(endAprLine.getEndDocumentMaster() != this){
+//            endAprLine.confirmMaster(this);
+//        }
+//    }
 }

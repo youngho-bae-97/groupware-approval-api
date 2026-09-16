@@ -1,6 +1,8 @@
 package com.byh.groupware.domain.approval.dto;
 
+import com.byh.groupware.domain.approval.entity.ActiveDoc;
 import com.byh.groupware.domain.approval.entity.DocumentMaster;
+import com.byh.groupware.domain.approval.entity.EndDoc;
 import com.byh.groupware.domain.approval.entity.EndDocumentMaster;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -38,52 +40,52 @@ public class ApprovalDetailResponseDTO {
     @Schema(description = "진행문서에서 결재버튼 활성화 여부")
     private boolean canApprove;
 
-    public ApprovalDetailResponseDTO(EndDocumentMaster entity, String currentUserId) {
+    public ApprovalDetailResponseDTO(EndDoc entity, String currentUserId) {
         // 1. 기본 마스터 정보 (EndDocumentMaster)
-        this.docId = entity.getId();
-        this.drafterId = currentUserId;
-        this.drafterName = entity.getDrafterName();
+        this.docId = entity.getEndDocumentMaster().getDocId();
+        this.drafterId = entity.getEndAprLines().get(0).getApproverId();
+        this.drafterName = entity.getEndDocumentMaster().getDrafterName();
         this.draftTime = entity.getCreatedDate(); // BaseEntity의 생성일자 활용
 
         // 2. 상태 정보 (EndStatusMap - OneToOne)
-        if (entity.getEndStatusMap() != null) {
-            this.docTitle = entity.getEndStatusMap().getDocTitle();
-            this.docStatus = entity.getEndStatusMap().getDocStatus();
-            this.currApprover = entity.getEndStatusMap().getCurrApproverId();
-        }
+//        if (entity.getEndDoc() != null) {
+            this.docTitle = entity.getDocTitle();
+            this.docStatus = entity.getDocStatus();
+//            this.currApprover = entity.getEndDoc().getCurrApproverId();
+//        }
 
         // 3. 본문 정보 (EndDoc - OneToOne)
-        if (entity.getEndDoc() != null) {
-            this.content = entity.getEndDoc().getSearchContent();
-        }
+//        if (entity.getEndDoc() != null) {
+            this.content = entity.getSearchContent();
+//        }
 
         // 4. 결재선 정보 (AprLines - OneToMany)
         this.approverLines = entity.getEndAprLines().stream()
                 .map(ApproverInfoDTO::new) // ApproverInfoDTO에도 엔티티를 받는 생성자가 있다고 가정
                 .toList();
 
-        // 5. 버튼 활성화 여부 로직 (현재 로그인한 사용자와 현재 결재자 비교)
-        this.canApprove = currentUserId != null && currentUserId.equals(this.currApprover);
+
+//        this.canApprove = currentUserId != null && currentUserId.equals(this.currApprover);
     }
 
-    public ApprovalDetailResponseDTO(DocumentMaster entity, String currentUserId) {
+    public ApprovalDetailResponseDTO(ActiveDoc entity, String currentUserId, String currApprover) {
         // 1. 기본 마스터 정보 (DocumentMaster)
-        this.docId = entity.getId();
-        this.drafterId = entity.getUserMaster().getLoginId();
-        this.drafterName = entity.getDrafterName();
-        this.draftTime = entity.getCreatedDate(); // BaseEntity의 생성일자 활용
+        this.docId = entity.getDocumentMaster().getDocId();
+        this.drafterId = entity.getAprLines().get(0).getUserMaster().getLoginId();
+        this.drafterName = entity.getDocumentMaster().getDrafterName();
+        this.draftTime = entity.getDocumentMaster().getCreatedDate(); // BaseEntity의 생성일자 활용
 
         // 2. 상태 정보 (StatusMap - OneToOne)
-        if (entity.getStatusMap() != null) {
-            this.docTitle = entity.getStatusMap().getDocTitle();
-            this.docStatus = entity.getStatusMap().getDocStatus();
-            this.currApprover = entity.getStatusMap().getUserMaster().getLoginId();
-        }
+//        if (entity.getActiveDoc() != null) {
+            this.docTitle = entity.getDocTitle();
+            this.docStatus = entity.getDocStatus();
+            this.currApprover = currApprover;
+//        }
 
         // 3. 본문 정보 (ActiveDoc - OneToOne)
-        if (entity.getActiveDoc() != null) {
-            this.content = entity.getActiveDoc().getSearchContent();
-        }
+//        if (entity.getActiveDoc() != null) {
+            this.content = entity.getSearchContent();
+//        }
 
         // 4. 결재선 정보 (AprLines - OneToMany)
         this.approverLines = entity.getAprLines().stream()

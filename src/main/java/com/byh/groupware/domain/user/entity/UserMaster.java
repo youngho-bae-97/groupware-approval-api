@@ -1,5 +1,6 @@
 package com.byh.groupware.domain.user.entity;
 
+import com.byh.groupware.domain.approval.entity.AprLine;
 import com.byh.groupware.domain.dept.entity.DeptMaster;
 import com.byh.groupware.domain.user.dto.UserRegisterDTO;
 import jakarta.persistence.*;
@@ -7,7 +8,11 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -48,12 +53,17 @@ public class UserMaster {
 
     private String deptName;
 
+    @OneToMany(mappedBy = "userMaster")
+    private List<AprLine> aprLines = new ArrayList<>();
+
+
     public UserMaster(String encodedPw, DeptMaster dept, UserRegisterDTO userRegisterDTO){
         this.memPass = encodedPw;
         this.useYn = "Y";
         this.dept = dept;
         this.loginId = userRegisterDTO.getMemId();
         this.memName = userRegisterDTO.getMemName();
+        this.deptName = dept.getDeptName();
 
     }
 

@@ -8,10 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface DocumentMasterRepository extends JpaRepository<DocumentMaster,String> {
-    @EntityGraph(attributePaths = {"activeDoc", "statusMap", "aprLines"})
-    Optional<DocumentMaster> findWithDetailsById(String id);
+public interface DocumentMasterRepository extends JpaRepository<DocumentMaster,Long> {
+//    @EntityGraph(attributePaths = {"activeDoc", "statusMap", "aprLines"})
+//    Optional<DocumentMaster> findWithDetailsById(String id);
 
-    @EntityGraph(attributePaths = {"activeDoc", "statusMap", "aprLines","userMaster","docForm"})
-    DocumentMaster findFetchedDocumentMasterById(String docId);
+    @EntityGraph(attributePaths = {"activeDoc", "activeDoc.aprLines", "userMaster", "docForm"})
+    DocumentMaster findFetchedDocumentMasterById(Long id);
 }

@@ -12,10 +12,13 @@ import org.springframework.data.domain.Persistable;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "tbl_docform")
-public class DocForm extends BaseEntity implements Persistable<String> {
-    @Id
-    @Column(name = "approval_form_id")
-    private String id;
+public class DocForm extends BaseEntity {
+    @Id @GeneratedValue
+    @Column(name = "docform_id")
+    private Long id;
+
+    @Column(unique = true)
+    private String approvalFormId;
 
     private String approvalFormType;
     private String approvalFormTitle;
@@ -23,19 +26,19 @@ public class DocForm extends BaseEntity implements Persistable<String> {
     private String approvalFormStatus;
     private String approvalFormBookmark;
 
-    public DocForm(String id, String approvalFormTitle, String approvalFormStatus){
-        this.id = id;
+    public DocForm(String approvalFormId, String approvalFormTitle, String approvalFormStatus){
+        this.approvalFormId = approvalFormId;
         this.approvalFormTitle = approvalFormTitle;
         this.approvalFormStatus = approvalFormStatus;
     }
 
-    @Override
-    public String getId(){
-        return id;
-    }
-
-    @Override
-    public boolean isNew() {
-        return getCreatedDate() == null;
-    }
+//    @Override
+//    public String getId(){
+//        return id;
+//    }
+//
+//    @Override
+//    public boolean isNew() {
+//        return getCreatedDate() == null;
+//    }
 }

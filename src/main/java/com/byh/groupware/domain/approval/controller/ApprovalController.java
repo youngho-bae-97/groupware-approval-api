@@ -1,7 +1,8 @@
 package com.byh.groupware.domain.approval.controller;
 
 import com.byh.groupware.domain.approval.dto.*;
-import com.byh.groupware.domain.approval.entity.StatusMap;
+//import com.byh.groupware.domain.approval.entity.StatusMap;
+import com.byh.groupware.domain.approval.entity.ActiveDoc;
 import com.byh.groupware.domain.approval.service.ApprovalService;
 import com.byh.groupware.domain.approval.service.JpaApprovalService;
 import com.byh.groupware.domain.user.exception.MissingLoginUserException;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,9 +65,9 @@ public class ApprovalController {
             log.warn("결재 요청 failed!! - 로그인 사용자 없음");
             throw new MissingLoginUserException("로그인이 필요합니다.");
         }
-        log.info("결재 요청 started!! - userId: {}, docId: {}", loginUser.getLoginId(), approvalProcessRequestDTO.getDocId());
+        log.info("결재 요청 started!! - userId: {}, docId: {}", loginUser.getLoginId(), approvalProcessRequestDTO.getActiveDocId());
         jpaApprovalService.doProcess(approvalProcessRequestDTO,loginUser);
-        log.info("결재 요청 ended!! - userId: {}, docId: {}", loginUser.getLoginId(), approvalProcessRequestDTO.getDocId());
+        log.info("결재 요청 ended!! - userId: {}, docId: {}", loginUser.getLoginId(), approvalProcessRequestDTO.getActiveDocId());
     }
 
     @Operation(summary = "문서 목록 조회", description = "클라이언트로부터 전달받은 viewType값에 따라 필요한 문서목록을 조회")
@@ -76,10 +78,10 @@ public class ApprovalController {
         UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
 
 
-        Page<StatusMap> page = jpaApprovalService.getApprovalList(dto, loginUser,pageable);
+        Page<ActiveDoc> page = jpaApprovalService.getApprovalList(dto, loginUser,pageable);
 
         log.info("결재 목록 확인 : {}",page);
-        Page<ApprovalListResponseDTO> map = page.map(statusMap -> new ApprovalListResponseDTO(statusMap));
+        Page<ApprovalListResponseDTO> map = page.map(activeDoc -> new ApprovalListResponseDTO(activeDoc));
 
 
         return map;
@@ -89,7 +91,7 @@ public class ApprovalController {
     @Operation(summary = "문서 상세 조회", description = "문서 ID와 상태값을 받아 상세 정보를 조회")
     @GetMapping("docDetail")
     public ApprovalDetailResponseDTO getDocDetail(
-            @Parameter(description = "문서 번호", example = "2026FORM-0100001") @RequestParam("docId") @NotBlank(message = "문서 번호는 필수입니다.") String docId,
+            @Parameter(description = "문서 번호", example = "2026FORM-0100001") @RequestParam("docId") @NotNull(message = "문서 번호는 필수입니다.") Long docId,
             @Parameter(description = "문서 상태(01:임시저장, 02:진행중, 03:완료, 04:반려)", example = "01")
             @RequestParam("docStatus")
             @NotBlank(message = "문서 상태는 필수입니다.")

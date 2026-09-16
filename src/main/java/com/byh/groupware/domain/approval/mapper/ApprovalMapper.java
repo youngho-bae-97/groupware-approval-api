@@ -4,7 +4,7 @@ import com.byh.groupware.domain.approval.dto.*;
 import com.byh.groupware.domain.approval.entity.ActiveDoc;
 import com.byh.groupware.domain.approval.entity.AprLine;
 import com.byh.groupware.domain.approval.entity.DocumentMaster;
-import com.byh.groupware.domain.approval.entity.StatusMap;
+//import com.byh.groupware.domain.approval.entity.StatusMap;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -32,7 +32,7 @@ public interface ApprovalMapper {
 
     boolean isFinalApprover(@Param("docId") String docId, @Param("processorId") String processorId);
 
-    StatusMap selectStatusForUpdate(String docId);
+//    StatusMap selectStatusForUpdate(String docId);
 
     //AprLineVO selectNextApprover(ApprovalProcessRequestDTO dto, boolean isFinal);
     // Mapper Interface
