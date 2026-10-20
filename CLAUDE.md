@@ -53,7 +53,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### 동시성 제어
 - **문서번호 채번**: `NoMasterRepository.findLockByYearAndDocFormId`에서 `PESSIMISTIC_WRITE`를 건다. 번호 형식은 `연도 + 양식ID + 5자리 시퀀스`(예: `2026FORM-0100001`)이고, 해당 연도/양식 레코드가 없으면 먼저 생성한 뒤 락을 잡는다.
 - **최종 결재**: `ActiveDocRepository.findByIdForUpdate`로 비관적 락을 잡은 뒤 상태를 다시 검증한다.
-- **일반 결재**: 주석과 커밋 메시지에는 "낙관적 락(@Version)"으로 되어 있지만, `@Version`은 제거된 `StatusMap`에만 있었다. 현재 활성 엔티티에는 `@Version`이 없다.
+- **일반 결재**: `ActiveDoc.version`(`@Version`)으로 낙관적 락을 건다. 일반결재는 `ActiveDoc` 값이 바뀌지 않아 UPDATE가 나가지 않으므로, `em.lock(activeDoc, OPTIMISTIC_FORCE_INCREMENT)`으로 version을 강제로 올린다. 이미 영속성 컨텍스트에 있는 엔티티에는 `@Lock` 쿼리로 다시 조회해도 락 모드가 적용되지 않는다(실측). 그래서 리포지토리 쿼리가 아니라 `em.lock`을 쓴다. 충돌하면 `GlobalExceptionHandler`가 409를 응답한다.
+- 최종 결재에는 force increment를 쓰지 않는다. 커밋 시점에 version UPDATE가 나가는데, 그 전에 같은 행을 벌크 삭제하기 때문이다.
+- `ActiveDoc.version`(낙관적 락)과 `DocumentMaster.version`(재기안 문서 버전)은 서로 다른 개념이다.
 
 ### 상태 코드 (문자열)
 - 문서 상태 `docStatus`: `01` 임시저장, `02` 진행중, `03` 완료, `04` 반려.

@@ -1,0 +1,11 @@
+# 시나리오: 결재자1이 같은 문서에 일반결재 요청을 동시에 2번 전송
+
+## 1) @Version + @Lock(OPTIMISTIC_FORCE_INCREMENT) 리포지토리 쿼리 (이미 영속 상태인 엔티티라 락 모드 미적용)
+2026-10-21T01:36:09.018+09:00  INFO 37348 --- [groupware] [           main] g.d.a.s.NormalApprovalOptimisticLockTest : 일반결재 결과 - 성공: 2, 실패 유형: {}
+-> tbl_activedoc version UPDATE 미실행, 두 요청 모두 결재선 UPDATE 후 커밋 (중복 처리)
+
+## 2) em.lock(activeDoc, OPTIMISTIC_FORCE_INCREMENT)
+update tbl_activedoc set version=1 where activedoc_id=402 and version=0;
+update tbl_activedoc set version=1 where activedoc_id=402 and version=0;
+2026-10-21T01:36:48.532+09:00  INFO 37630 --- [groupware] [pool-3-thread-1] g.d.a.s.NormalApprovalOptimisticLockTest : 일반결재 실패 - ObjectOptimisticLockingFailureException: Row was updated or deleted by another transaction (or unsaved-value mapping was incorrect)
+2026-10-21T01:36:48.533+09:00  INFO 37630 --- [groupware] [           main] g.d.a.s.NormalApprovalOptimisticLockTest : 일반결재 결과 - 성공: 1, 실패 유형: {ObjectOptimisticLockingFailureException=1}

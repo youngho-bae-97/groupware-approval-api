@@ -46,6 +46,10 @@ public class ActiveDoc extends BaseEntity {
     // 2026.09.15 문서상태 컬럼 새로 추가
     private String docStatus;
 
+    // 낙관적 락 버전 (DocumentMaster.version 은 재기안 문서 버전이므로 별개)
+    @Version
+    private Long version;
+
     private ActiveDoc(ApprovalDraftRequestDTO approvalDraftRequestDTO){
         this.attachYn = approvalDraftRequestDTO.getAttachYn();
         this.urgentYn = approvalDraftRequestDTO.getUrgentYn();

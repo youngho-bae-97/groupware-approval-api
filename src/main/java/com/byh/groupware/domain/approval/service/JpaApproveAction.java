@@ -8,6 +8,8 @@ import com.byh.groupware.domain.approval.repository.*;
 import com.byh.groupware.domain.approval.type.ApprovalType;
 import com.byh.groupware.domain.user.entity.UserMaster;
 import com.byh.groupware.domain.user.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +37,8 @@ public class JpaApproveAction implements ApprovalAction{
     private final DocumentMasterRepository documentMasterRepository;
 
     private final EndDocumentMasterRepository endDocumentMasterRepository;
+
+    private final EntityManager em;
     @Override
     public ApprovalType getActionType() {
         return ApprovalType.APPROVE;
@@ -204,7 +208,13 @@ public void doProcess(
 //                statusMapRepository.findById(dto.getDocId())
 //                        .orElseThrow(() ->
 //                                new IllegalArgumentException("상태 정보가 존재하지 않습니다."));
-        Optional<ActiveDoc> activeDoc = activeDocRepository.findById(dto.getActiveDocId());
+        ActiveDoc activeDoc = activeDocRepository.findById(dto.getActiveDocId())
+                .orElseThrow(() -> new IllegalArgumentException("문서 본문이 존재하지 않습니다."));
+
+        // 낙관적 락(OPTIMISTIC_FORCE_INCREMENT): 문서 값이 바뀌지 않아도(docStatus 02 -> 02) 커밋 시 version 을 올리고,
+        // 그 사이 다른 트랜잭션이 version 을 바꿨으면 예외 발생
+        // validateApproval 에서 이미 영속성 컨텍스트에 올라온 엔티티라 @Lock 쿼리로는 락 모드가 적용되지 않으므로 직접 lock 호출
+        em.lock(activeDoc, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
 
         // 다음 결재자 조회
         Slice<AprLine> nextLineSlice =
