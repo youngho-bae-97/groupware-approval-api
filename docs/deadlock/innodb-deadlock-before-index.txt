@@ -1,0 +1,239 @@
+LATEST DETECTED DEADLOCK
+------------------------
+2026-10-21 00:39:08 0x16e3b3000
+*** (1) TRANSACTION:
+TRANSACTION 28353, ACTIVE 0 sec starting index read
+mysql tables in use 1, locked 1
+LOCK WAIT 10 lock struct(s), heap size 1128, 5 row lock(s), undo log entries 6
+MySQL thread id 30, OS thread handle 6160035840, query id 983 localhost 127.0.0.1 gw_user executing
+delete al1_0 from tbl_aprline al1_0 where al1_0.activedoc_id=106
+
+*** (1) HOLDS THE LOCK(S):
+RECORD LOCKS space id 319 page no 4 n bits 96 index PRIMARY of table `groupware_db`.`tbl_aprline` trx id 28353 lock_mode X locks rec but not gap
+Record lock, heap no 17 PHYSICAL RECORD: n_fields 17; compact format; info bits 0
+ 0: len 8; hex 800000000000006f; asc        o;;
+ 1: len 6; hex 000000006ec1; asc     n ;;
+ 2: len 7; hex 020000019018b8; asc        ;;
+ 3: len 4; hex 80000002; asc     ;;
+ 4: len 8; hex 800000000000006a; asc        j;;
+ 5: len 8; hex 99bb2a09c80abdc8; asc   *     ;;
+ 6: len 8; hex 99bb2a09c80b59a3; asc   *   Y ;;
+ 7: len 8; hex 800000000000006b; asc        k;;
+ 8: SQL NULL;
+ 9: len 2; hex 3033; asc 03;;
+ 10: len 2; hex 3032; asc 02;;
+ 11: SQL NULL;
+ 12: SQL NULL;
+ 13: SQL NULL;
+ 14: len 10; hex eab2b0ec9eacec9e9034; asc          4;;
+ 15: len 6; hex 53595354454d; asc SYSTEM;;
+ 16: len 6; hex 53595354454d; asc SYSTEM;;
+
+
+*** (1) WAITING FOR THIS LOCK TO BE GRANTED:
+RECORD LOCKS space id 319 page no 4 n bits 96 index PRIMARY of table `groupware_db`.`tbl_aprline` trx id 28353 lock_mode X waiting
+Record lock, heap no 2 PHYSICAL RECORD: n_fields 17; compact format; info bits 0
+ 0: len 8; hex 8000000000000004; asc         ;;
+ 1: len 6; hex 00000000603d; asc     `=;;
+ 2: len 7; hex 810000010c0132; asc       2;;
+ 3: len 4; hex 80000001; asc     ;;
+ 4: len 8; hex 8000000000000002; asc         ;;
+ 5: len 8; hex 99bae106070aa610; asc         ;;
+ 6: len 8; hex 99bae106070aa610; asc         ;;
+ 7: len 8; hex 8000000000000001; asc         ;;
+ 8: SQL NULL;
+ 9: len 2; hex 3033; asc 03;;
+ 10: len 2; hex 3031; asc 01;;
+ 11: len 6; hex 444550543031; asc DEPT01;;
+ 12: len 18; hex ebb0b1ec9794eb939ceab09cebb09ced8c80; asc                   ;;
+ 13: len 6; hex ec82acec9b90; asc       ;;
+ 14: len 9; hex eab980ec9881ed98b8; asc          ;;
+ 15: len 9; hex 796f756e686f313233; asc younho123;;
+ 16: len 9; hex 796f756e686f313233; asc younho123;;
+
+
+*** (2) TRANSACTION:
+TRANSACTION 28355, ACTIVE 0 sec fetching rows
+mysql tables in use 1, locked 1
+LOCK WAIT 15 lock struct(s), heap size 1128, 20 row lock(s), undo log entries 8
+MySQL thread id 27, OS thread handle 6166720512, query id 984 localhost 127.0.0.1 gw_user executing
+delete al1_0 from tbl_aprline al1_0 where al1_0.activedoc_id=102
+
+*** (2) HOLDS THE LOCK(S):
+RECORD LOCKS space id 319 page no 4 n bits 96 index PRIMARY of table `groupware_db`.`tbl_aprline` trx id 28355 lock_mode X
+Record lock, heap no 2 PHYSICAL RECORD: n_fields 17; compact format; info bits 0
+ 0: len 8; hex 8000000000000004; asc         ;;
+ 1: len 6; hex 00000000603d; asc     `=;;
+ 2: len 7; hex 810000010c0132; asc       2;;
+ 3: len 4; hex 80000001; asc     ;;
+ 4: len 8; hex 8000000000000002; asc         ;;
+ 5: len 8; hex 99bae106070aa610; asc         ;;
+ 6: len 8; hex 99bae106070aa610; asc         ;;
+ 7: len 8; hex 8000000000000001; asc         ;;
+ 8: SQL NULL;
+ 9: len 2; hex 3033; asc 03;;
+ 10: len 2; hex 3031; asc 01;;
+ 11: len 6; hex 444550543031; asc DEPT01;;
+ 12: len 18; hex ebb0b1ec9794eb939ceab09cebb09ced8c80; asc                   ;;
+ 13: len 6; hex ec82acec9b90; asc       ;;
+ 14: len 9; hex eab980ec9881ed98b8; asc          ;;
+ 15: len 9; hex 796f756e686f313233; asc younho123;;
+ 16: len 9; hex 796f756e686f313233; asc younho123;;
+
+Record lock, heap no 3 PHYSICAL RECORD: n_fields 17; compact format; info bits 0
+ 0: len 8; hex 8000000000000005; asc         ;;
+ 1: len 6; hex 00000000603d; asc     `=;;
+ 2: len 7; hex 810000010c0143; asc       C;;
+ 3: len 4; hex 80000002; asc     ;;
+ 4: len 8; hex 8000000000000002; asc         ;;
+ 5: len 8; hex 99bae106070aa768; asc        h;;
+ 6: len 8; hex 99bae106070aa768; asc        h;;
+ 7: len 8; hex 8000000000000002; asc         ;;
+ 8: SQL NULL;
+ 9: len 2; hex 3032; asc 02;;
+ 10: len 2; hex 3032; asc 02;;
+ 11: len 6; hex 444550543031; asc DEPT01;;
+ 12: len 18; hex ebb0b1ec9794eb939ceab09cebb09ced8c80; asc                   ;;
+ 13: len 6; hex eb8c80eba6ac; asc       ;;
+ 14: len 9; hex ed998deab8b8eb8f99; asc          ;;
+ 15: len 9; hex 796f756e686f313233; asc younho123;;
+ 16: len 9; hex 796f756e686f313233; asc younho123;;
+
+Record lock, heap no 4 PHYSICAL RECORD: n_fields 17; compact format; info bits 0
+ 0: len 8; hex 8000000000000006; asc         ;;
+ 1: len 6; hex 00000000603d; asc     `=;;
+ 2: len 7; hex 810000010c0154; asc       T;;
+ 3: len 4; hex 80000003; asc     ;;
+ 4: len 8; hex 8000000000000002; asc         ;;
+ 5: len 8; hex 99bae106070aa876; asc        v;;
+ 6: len 8; hex 99bae106070aa876; asc        v;;
+ 7: len 8; hex 8000000000000003; asc         ;;
+ 8: SQL NULL;
+ 9: len 2; hex 3031; asc 01;;
+ 10: len 2; hex 3032; asc 02;;
+ 11: len 6; hex 444550543031; asc DEPT01;;
+ 12: len 18; hex ebb0b1ec9794eb939ceab09cebb09ced8c80; asc                   ;;
+ 13: len 6; hex eab3bcec9ea5; asc       ;;
+ 14: len 9; hex eab980ebafbcec8898; asc          ;;
+ 15: len 9; hex 796f756e686f313233; asc younho123;;
+ 16: len 9; hex 796f756e686f313233; asc younho123;;
+
+Record lock, heap no 5 PHYSICAL RECORD: n_fields 17; compact format; info bits 0
+ 0: len 8; hex 8000000000000007; asc         ;;
+ 1: len 6; hex 000000006049; asc     `I;;
+ 2: len 7; hex 810000010f0132; asc       2;;
+ 3: len 4; hex 80000001; asc     ;;
+ 4: len 8; hex 8000000000000003; asc         ;;
+ 5: len 8; hex 99bae106090e0809; asc         ;;
+ 6: len 8; hex 99bae106090e0809; asc         ;;
+ 7: len 8; hex 8000000000000001; asc         ;;
+ 8: SQL NULL;
+ 9: len 2; hex 3033; asc 03;;
+ 10: len 2; hex 3031; asc 01;;
+ 11: len 6; hex 444550543031; asc DEPT01;;
+ 12: len 18; hex ebb0b1ec9794eb939ceab09cebb09ced8c80; asc                   ;;
+ 13: len 6; hex ec82acec9b90; asc       ;;
+ 14: len 9; hex eab980ec9881ed98b8; asc          ;;
+ 15: len 9; hex 796f756e686f313233; asc younho123;;
+ 16: len 9; hex 796f756e686f313233; asc younho123;;
+
+Record lock, heap no 6 PHYSICAL RECORD: n_fields 17; compact format; info bits 0
+ 0: len 8; hex 8000000000000008; asc         ;;
+ 1: len 6; hex 000000006049; asc     `I;;
+ 2: len 7; hex 810000010f0143; asc       C;;
+ 3: len 4; hex 80000002; asc     ;;
+ 4: len 8; hex 8000000000000003; asc         ;;
+ 5: len 8; hex 99bae106090e08ee; asc         ;;
+ 6: len 8; hex 99bae106090e08ee; asc         ;;
+ 7: len 8; hex 8000000000000002; asc         ;;
+ 8: SQL NULL;
+ 9: len 2; hex 3032; asc 02;;
+ 10: len 2; hex 3032; asc 02;;
+ 11: len 6; hex 444550543031; asc DEPT01;;
+ 12: len 18; hex ebb0b1ec9794eb939ceab09cebb09ced8c80; asc                   ;;
+ 13: len 6; hex eb8c80eba6ac; asc       ;;
+ 14: len 9; hex ed998deab8b8eb8f99; asc          ;;
+ 15: len 9; hex 796f756e686f313233; asc younho123;;
+ 16: len 9; hex 796f756e686f313233; asc younho123;;
+
+Record lock, heap no 7 PHYSICAL RECORD: n_fields 17; compact format; info bits 0
+ 0: len 8; hex 8000000000000009; asc         ;;
+ 1: len 6; hex 000000006049; asc     `I;;
+ 2: len 7; hex 810000010f0154; asc       T;;
+ 3: len 4; hex 80000003; asc     ;;
+ 4: len 8; hex 8000000000000003; asc         ;;
+ 5: len 8; hex 99bae106090e09e3; asc         ;;
+ 6: len 8; hex 99bae106090e09e3; asc         ;;
+ 7: len 8; hex 8000000000000003; asc         ;;
+ 8: SQL NULL;
+ 9: len 2; hex 3031; asc 01;;
+ 10: len 2; hex 3032; asc 02;;
+ 11: len 6; hex 444550543031; asc DEPT01;;
+ 12: len 18; hex ebb0b1ec9794eb939ceab09cebb09ced8c80; asc                   ;;
+ 13: len 6; hex eab3bcec9ea5; asc       ;;
+ 14: len 9; hex eab980ebafbcec8898; asc          ;;
+ 15: len 9; hex 796f756e686f313233; asc younho123;;
+ 16: len 9; hex 796f756e686f313233; asc younho123;;
+
+Record lock, heap no 26 PHYSICAL RECORD: n_fields 17; compact format; info bits 0
+ 0: len 8; hex 8000000000000068; asc        h;;
+ 1: len 6; hex 000000006eae; asc     n ;;
+ 2: len 7; hex 82000000e50132; asc       2;;
+ 3: len 4; hex 80000001; asc     ;;
+ 4: len 8; hex 8000000000000067; asc        g;;
+ 5: len 8; hex 99bb2a09c805fb31; asc   *    1;;
+ 6: len 8; hex 99bb2a09c805fb31; asc   *    1;;
+ 7: len 8; hex 8000000000000066; asc        f;;
+ 8: SQL NULL;
+ 9: len 2; hex 3033; asc 03;;
+ 10: len 2; hex 3031; asc 01;;
+ 11: SQL NULL;
+ 12: SQL NULL;
+ 13: SQL NULL;
+ 14: len 9; hex eab8b0ec9588ec9e90; asc          ;;
+ 15: len 6; hex 53595354454d; asc SYSTEM;;
+ 16: len 6; hex 53595354454d; asc SYSTEM;;
+
+Record lock, heap no 27 PHYSICAL RECORD: n_fields 17; compact format; info bits 32
+ 0: len 8; hex 8000000000000066; asc        f;;
+ 1: len 6; hex 000000006ec3; asc     n ;;
+ 2: len 7; hex 02000001ae2837; asc      (7;;
+ 3: len 4; hex 80000001; asc     ;;
+ 4: len 8; hex 8000000000000066; asc        f;;
+ 5: len 8; hex 99bb2a09c8041a29; asc   *    );;
+ 6: len 8; hex 99bb2a09c8041a29; asc   *    );;
+ 7: len 8; hex 8000000000000066; asc        f;;
+ 8: SQL NULL;
+ 9: len 2; hex 3033; asc 03;;
+ 10: len 2; hex 3031; asc 01;;
+ 11: SQL NULL;
+ 12: SQL NULL;
+ 13: SQL NULL;
+ 14: len 9; hex eab8b0ec9588ec9e90; asc          ;;
+ 15: len 6; hex 53595354454d; asc SYSTEM;;
+ 16: len 6; hex 53595354454d; asc SYSTEM;;
+
+
+*** (2) WAITING FOR THIS LOCK TO BE GRANTED:
+RECORD LOCKS space id 319 page no 4 n bits 96 index PRIMARY of table `groupware_db`.`tbl_aprline` trx id 28355 lock_mode X waiting
+Record lock, heap no 17 PHYSICAL RECORD: n_fields 17; compact format; info bits 0
+ 0: len 8; hex 800000000000006f; asc        o;;
+ 1: len 6; hex 000000006ec1; asc     n ;;
+ 2: len 7; hex 020000019018b8; asc        ;;
+ 3: len 4; hex 80000002; asc     ;;
+ 4: len 8; hex 800000000000006a; asc        j;;
+ 5: len 8; hex 99bb2a09c80abdc8; asc   *     ;;
+ 6: len 8; hex 99bb2a09c80b59a3; asc   *   Y ;;
+ 7: len 8; hex 800000000000006b; asc        k;;
+ 8: SQL NULL;
+ 9: len 2; hex 3033; asc 03;;
+ 10: len 2; hex 3032; asc 02;;
+ 11: SQL NULL;
+ 12: SQL NULL;
+ 13: SQL NULL;
+ 14: len 10; hex eab2b0ec9eacec9e9034; asc          4;;
+ 15: len 6; hex 53595354454d; asc SYSTEM;;
+ 16: len 6; hex 53595354454d; asc SYSTEM;;
+
+*** WE ROLL BACK TRANSACTION (1)
+

@@ -26,8 +26,8 @@ public class EndAprLine extends BaseEntity {
     private EndDoc endDoc;          // DOC_ID: 문서 번호
 
     private Integer stepSeq;       // STEP_SEQ: 결재 순번 (1: 기안자, 2: 1차결재자...)
-    private String approveType;    // APPROVE_TYPE: 결재 유형 (01:기안, 02:결재, 03:합의 등)
-    private String approveStatus;  // APPROVE_STATUS: 결재 상태 (01:대기, 02:승인, 03:반려)
+    private String approveType;    // APPROVE_TYPE: 결재 유형 (01:기안, 02:결재, 03:합의, 04:반려, 09:참조)
+    private String approveStatus;  // APPROVE_STATUS: 결재 상태 (01:대기, 02:진행중, 03:완료)
     private String approveReason;  // APPROVE_REASON: 반려 사유
     private String approverId;     // APPROVER_ID: 결재자 사번/ID
     private String approverName;   // APPROVER_NAME: 결재자 성명

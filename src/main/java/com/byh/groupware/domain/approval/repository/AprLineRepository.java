@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -89,4 +90,9 @@ public interface AprLineRepository extends JpaRepository<AprLine, Long> {
     order by a.stepSeq
     """)
     AprLine findCurrApprover(Long activeDocId);
+
+    // 최종결재 시 hot 데이터 제거용 벌크 삭제 (영속성 컨텍스트를 거치지 않으므로 실행 전 flush, 실행 후 clear)
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("delete from AprLine a where a.activeDoc.id = :activeDocId")
+    int deleteAprLinesByActiveDocId(@Param("activeDocId") Long activeDocId);
 }

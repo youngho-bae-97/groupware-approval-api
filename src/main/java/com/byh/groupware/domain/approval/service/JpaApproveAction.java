@@ -363,7 +363,14 @@ public void doProcess(
 
         // hot 제거 (orphanRemoval)
 //        documentMaster.removeStatusMap();
-        documentMaster.removeActiveDoc();
+//        documentMaster.removeActiveDoc();
+
+        // hot 제거 (벌크 삭제)
+        // orphanRemoval은 결재선 수만큼 PK 단건 DELETE가 발생하므로 벌크 삭제로 전환
+        // removeActiveDoc()을 같이 호출하면 orphanRemoval이 다시 동작하므로 호출하지 않음
+        // 결재선(자식) -> 진행문서(부모) 순서로 삭제
+        aprLineRepository.deleteAprLinesByActiveDocId(dto.getActiveDocId());
+        activeDocRepository.deleteActiveDocById(dto.getActiveDocId());
 
 //        documentMaster.removeAprLines();
     }

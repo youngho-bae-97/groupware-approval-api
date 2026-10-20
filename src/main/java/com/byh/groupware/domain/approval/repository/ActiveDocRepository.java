@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -48,6 +49,11 @@ public interface ActiveDocRepository extends JpaRepository<ActiveDoc, Long> {
     where d.id = :id
     """)
     Optional<ActiveDoc> findByIdForUpdate(@Param("id") Long id);
+
+    // 최종결재 시 hot 데이터 제거용 벌크 삭제 (결재선 삭제 후 호출)
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("delete from ActiveDoc d where d.id = :id")
+    int deleteActiveDocById(@Param("id") Long id);
 
 //    ActiveDoc findByDocId(String docId);
 

@@ -16,7 +16,10 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "tbl_aprline")
+// FK 제약 없이 운영하므로 activedoc_id 인덱스를 별도로 둠
+// (없으면 최종결재 벌크 삭제가 풀 스캔 + next-key lock 으로 데드락 발생, docs/deadlock 참고)
+@Table(name = "tbl_aprline",
+        indexes = @Index(name = "idx_aprline_activedoc_id", columnList = "activedoc_id"))
 public class AprLine extends BaseEntity {
 
     @Id @GeneratedValue
@@ -31,8 +34,8 @@ public class AprLine extends BaseEntity {
     private ActiveDoc activeDoc;
 
 
-    private String approveType;    // APPROVE_TYPE: 결재 유형 (01:기안, 02:결재, 03:합의 등)
-    private String approveStatus;  // APPROVE_STATUS: 결재 상태 (01:대기, 02:승인, 03:반려)
+    private String approveType;    // APPROVE_TYPE: 결재 유형 (01:기안, 02:결재, 03:합의, 04:반려, 09:참조)
+    private String approveStatus;  // APPROVE_STATUS: 결재 상태 (01:대기, 02:진행중, 03:완료)
     private String approveReason;  // APPROVE_REASON: 반려 사유
 
     @ManyToOne(fetch = FetchType.LAZY)
