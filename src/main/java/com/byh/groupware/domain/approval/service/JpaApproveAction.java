@@ -36,7 +36,7 @@ public class JpaApproveAction implements ApprovalAction{
 
     private final DocumentMasterRepository documentMasterRepository;
 
-    private final EndDocumentMasterRepository endDocumentMasterRepository;
+    private final EndDocRepository endDocRepository;
 
     private final EntityManager em;
     @Override
@@ -203,11 +203,7 @@ public void doProcess(
             ApprovalProcessRequestDTO dto
     ) {
 
-        // StatusMap 조회
-//        StatusMap statusMap =
-//                statusMapRepository.findById(dto.getDocId())
-//                        .orElseThrow(() ->
-//                                new IllegalArgumentException("상태 정보가 존재하지 않습니다."));
+
         ActiveDoc activeDoc = activeDocRepository.findById(dto.getActiveDocId())
                 .orElseThrow(() -> new IllegalArgumentException("문서 본문이 존재하지 않습니다."));
 
@@ -338,13 +334,9 @@ public void doProcess(
                         dto.getDocMasterId()
                 );
 
-        // DocumentMaster 복사
-        EndDocumentMaster endDocumentMaster =
-                EndDocumentMaster.createEndDocumentMaster(
-                        documentMaster
-                );
-
+        // DocumentMaster 는 이관하지 않고 그대로 두고, 완료 문서가 같은 마스터를 참조
         EndDoc endDoc = EndDoc.createEndDoc(documentMaster.getActiveDoc());
+        endDoc.confirmMaster(documentMaster);
 
         // AprLine 복사
         for (AprLine line : documentMaster.getActiveDoc().getAprLines()) {
@@ -354,12 +346,6 @@ public void doProcess(
             );
         }
 
-        // ActiveDoc 복사
-        endDocumentMaster.addEndDoc(
-                endDoc
-        );
-
-
         // StatusMap 복사
 //        endDocumentMaster.addEndStatusMap(
 //                EndStatusMap.createEndStatusMap(
@@ -368,8 +354,8 @@ public void doProcess(
 //        );
 
 
-        // cold 저장
-        endDocumentMasterRepository.save(endDocumentMaster);
+        // cold 저장 (결재선은 cascade 로 함께 저장)
+        endDocRepository.save(endDoc);
 
         // hot 제거 (orphanRemoval)
 //        documentMaster.removeStatusMap();

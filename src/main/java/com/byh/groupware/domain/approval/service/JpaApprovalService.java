@@ -40,8 +40,6 @@ public class JpaApprovalService {
 
     private final DocumentMasterRepository documentMasterRepository;
 
-    private final EndDocumentMasterRepository endDocumentMasterRepository;
-
     private final EndDocRepository endDocRepository;
 
     private final DocFormRepository docFormRepository;

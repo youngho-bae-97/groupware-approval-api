@@ -44,12 +44,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 문서 생명주기와 Hot/Cold 테이블 분리
 - **진행(hot)**: `DocumentMaster`(문서의 "출생신고서", 1:1) → `ActiveDoc`(본문, 문서 상태) → `AprLine`(결재선, 1:N).
-- **완료(cold)**: `EndDocumentMaster` → `EndDoc` → `EndAprLine`.
+- **완료(cold)**: `EndDoc` → `EndAprLine`. `EndDoc`은 진행 문서와 같은 `DocumentMaster`를 참조한다(`tbl_enddoc.document_master_id`).
+- 문서 마스터는 분리하지 않는다. `DocumentMaster`는 진행·완료 구분 없이 모든 문서의 원장이고, 최종결재 후에도 삭제하지 않는다. 그래서 문서번호 유일성과 재기안 이력(`root_doc_id`)을 테이블 하나로 관리한다. 예전 `EndDocumentMaster`는 마스터를 중복으로 복사하던 구조여서 제거했다(`docs/migration/`, 기존 테이블은 `tbl_end_document_master_bak`으로 백업).
 - 상태 관리는 원래 `StatusMap`이 담당했지만 최근 개편에서 제거됐고, 지금은 `ActiveDoc.docStatus`와 `AprLine`의 결재 상태가 그 역할을 한다.
-- 최종 결재 시 `JpaApproveAction.archiveDocument()`가 `@EntityGraph`로 fetch한 hot 엔티티를 cold 엔티티로 복사해 저장한 뒤, hot 데이터를 **JPQL 벌크 삭제**한다(`AprLine` → `ActiveDoc` 순서, `@Modifying(flushAutomatically, clearAutomatically)`). orphanRemoval은 결재선 수만큼 단건 DELETE가 나가서 바꿨으므로 `removeActiveDoc()`을 같이 호출하지 말 것. `DocumentMaster` 자체는 남는다.
+- 최종 결재 시 `JpaApproveAction.archiveDocument()`가 `@EntityGraph`로 fetch한 본문과 결재선을 `EndDoc`/`EndAprLine`으로 복사해 저장(`endDocRepository.save`, 결재선은 cascade)한 뒤, hot 데이터를 **JPQL 벌크 삭제**한다(`AprLine` → `ActiveDoc` 순서, `@Modifying(flushAutomatically, clearAutomatically)`). orphanRemoval은 결재선 수만큼 단건 DELETE가 나가서 바꿨으므로 `removeActiveDoc()`을 같이 호출하지 말 것. `DocumentMaster` 자체는 남는다.
 - DB에 FK 제약을 두지 않는다. 그래서 FK 컬럼 인덱스가 자동으로 생기지 않으니, 조건절에 쓰는 컬럼은 인덱스를 직접 만들어야 한다. `tbl_aprline.activedoc_id` 인덱스가 없으면 서로 다른 문서의 최종결재가 동시에 일어날 때 벌크 삭제가 풀 스캔하면서 데드락이 난다(`FinalApprovalDeadlockTest`, `docs/deadlock/`). 인덱스는 엔티티 `@Table(indexes=...)`에도 기록해 둔다.
 - 상세 조회(`getApprovalDetail`)는 `docStatus == "03"`이면 `EndDoc`을, 그 외에는 `ActiveDoc`을 조회한다.
-- 연관관계 편의 메서드(`addActiveDoc`, `addAprLine`, `addEndDoc` …)와 정적 팩토리(`createXxx`)로 엔티티를 생성하고, 저장은 루트(`DocumentMaster` / `EndDocumentMaster`)에서 cascade로 한다.
+- 연관관계 편의 메서드(`addActiveDoc`, `addAprLine`, `addEndDoc` …)와 정적 팩토리(`createXxx`)로 엔티티를 생성하고, 저장은 루트(`DocumentMaster` / `EndDoc`)에서 cascade로 한다.
 
 ### 동시성 제어
 - **문서번호 채번**: `NoMasterRepository.findLockByYearAndDocFormId`에서 `PESSIMISTIC_WRITE`를 건다. 번호 형식은 `연도 + 양식ID + 5자리 시퀀스`(예: `2026FORM-0100001`)이고, 해당 연도/양식 레코드가 없으면 먼저 생성한 뒤 락을 잡는다.

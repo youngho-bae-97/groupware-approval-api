@@ -89,16 +89,14 @@ class FinalApprovalDeadlockTest {
                         delete from EndAprLine e
                         where e.endDoc.id in (
                             select d.id from EndDoc d
-                            where d.endDocumentMaster.id in (
-                                select m.id from EndDocumentMaster m where m.docId in :docIds))
+                            where d.documentMaster.id in (
+                                select m.id from DocumentMaster m where m.docId in :docIds))
                         """).setParameter("docIds", createdDocIds).executeUpdate();
                 em.createQuery("""
                         delete from EndDoc d
-                        where d.endDocumentMaster.id in (
-                            select m.id from EndDocumentMaster m where m.docId in :docIds)
+                        where d.documentMaster.id in (
+                            select m.id from DocumentMaster m where m.docId in :docIds)
                         """).setParameter("docIds", createdDocIds).executeUpdate();
-                em.createQuery("delete from EndDocumentMaster m where m.docId in :docIds")
-                        .setParameter("docIds", createdDocIds).executeUpdate();
 
                 // hot 데이터 (최종결재 실패분)
                 em.createQuery("""

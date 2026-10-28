@@ -3,7 +3,6 @@ package com.byh.groupware.domain.approval.dto;
 import com.byh.groupware.domain.approval.entity.ActiveDoc;
 import com.byh.groupware.domain.approval.entity.DocumentMaster;
 import com.byh.groupware.domain.approval.entity.EndDoc;
-import com.byh.groupware.domain.approval.entity.EndDocumentMaster;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -41,10 +40,10 @@ public class ApprovalDetailResponseDTO {
     private boolean canApprove;
 
     public ApprovalDetailResponseDTO(EndDoc entity, String currentUserId) {
-        // 1. 기본 마스터 정보 (EndDocumentMaster)
-        this.docId = entity.getEndDocumentMaster().getDocId();
+        // 1. 기본 마스터 정보 (DocumentMaster)
+        this.docId = entity.getDocumentMaster().getDocId();
         this.drafterId = entity.getEndAprLines().get(0).getApproverId();
-        this.drafterName = entity.getEndDocumentMaster().getDrafterName();
+        this.drafterName = entity.getDocumentMaster().getDrafterName();
         this.draftTime = entity.getCreatedDate(); // BaseEntity의 생성일자 활용
 
         // 2. 상태 정보 (EndStatusMap - OneToOne)

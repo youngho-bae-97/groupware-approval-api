@@ -1,7 +1,6 @@
 package com.byh.groupware.domain.approval.repository;
 
 import com.byh.groupware.domain.approval.entity.DocumentMaster;
-import com.byh.groupware.domain.approval.entity.EndDocumentMaster;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -24,9 +24,10 @@ public class EndDoc extends BaseEntity {
 
     private String docStatus;
 
+    // 문서 마스터는 진행/완료 구분 없이 하나만 유지 (문서의 출생신고서 역할, 최종결재 후에도 삭제하지 않음)
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "end_document_master_id")
-    private EndDocumentMaster endDocumentMaster;
+    @JoinColumn(name = "document_master_id")
+    private DocumentMaster documentMaster;
 
     @OneToMany(mappedBy = "endDoc",
             cascade = CascadeType.ALL,
@@ -58,9 +59,8 @@ public class EndDoc extends BaseEntity {
         return new EndDoc(activeDoc);
     }
 
-    public void confirmMaster(EndDocumentMaster master){
-        this.endDocumentMaster = master;
-        this.id = master.getId();
+    public void confirmMaster(DocumentMaster master){
+        this.documentMaster = master;
     }
 
     public void addEndAprLine(EndAprLine endAprLine){
