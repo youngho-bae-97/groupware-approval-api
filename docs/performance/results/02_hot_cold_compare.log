@@ -1,0 +1,120 @@
+>>> SELECT table_name, table_rows, ROUND(data_length / 1024 / 1024, 1) AS data_mb, ROUND(index_length / 1024 / 1024, 1) AS index_mb FROM information_schema.tables W ...
+TABLE_NAME=tbl_activedoc | TABLE_ROWS=9895 | data_mb=1.5 | index_mb=0.3
+TABLE_NAME=tbl_aprline | TABLE_ROWS=39840 | data_mb=4.5 | index_mb=3.0
+TABLE_NAME=tbl_aprline_all | TABLE_ROWS=3914033 | data_mb=393.0 | index_mb=208.4
+TABLE_NAME=tbl_doc_all | TABLE_ROWS=1001696 | data_mb=138.7 | index_mb=22.6
+(23.2 ms)
+>>> SELECT d.* FROM tbl_activedoc d JOIN tbl_aprline l ON l.activedoc_id = d.activedoc_id JOIN tbl_user_master u ON u.mem_id = l.mem_id WHERE d.doc_status = '02' AN ...
+(12.2 ms)
+>>> EXPLAIN ANALYZE SELECT d.* FROM tbl_activedoc d JOIN tbl_aprline l ON l.activedoc_id = d.activedoc_id JOIN tbl_user_master u ON u.mem_id = l.mem_id WHERE d.doc_ ...
+EXPLAIN=-> Limit: 10 row(s)  (actual time=1.86..1.87 rows=10 loops=1)
+    -> Sort: d.created_date, limit input to 10 row(s) per chunk  (actual time=1.86..1.87 rows=10 loops=1)
+        -> Stream results  (cost=1906 rows=40.4) (actual time=0.0875..1.84 rows=16 loops=1)
+            -> Nested loop inner join  (cost=1906 rows=40.4) (actual time=0.0818..1.79 rows=16 loops=1)
+                -> Nested loop inner join  (cost=1518 rows=404) (actual time=0.0707..1.66 rows=16 loops=1)
+                    -> Filter: (u.login_id = 'perf_user_0001')  (cost=103 rows=100) (actual time=0.0323..1.44 rows=1 loops=1)
+                        -> Table scan on u  (cost=103 rows=1003) (actual time=0.029..0.937 rows=1003 loops=1)
+                    -> Filter: ((l.approve_status = '02') and (l.activedoc_id is not null))  (cost=10.1 rows=4.03) (actual time=0.0378..0.215 rows=16 loops=1)
+                        -> Index lookup on l using FKcup40gcocej79bvowrv1p5xy2 (mem_id=u.mem_id)  (cost=10.1 rows=40.3) (actual time=0.0358..0.202 rows=40 loops=1)
+                -> Filter: (d.doc_status = '02')  (cost=0.858 rows=0.1) (actual time=0.00771..0.00813 rows=1 loops=16)
+                    -> Single-row index lookup on d using PRIMARY (activedoc_id=l.activedoc_id)  (cost=0.858 rows=1) (actual time=0.00727..0.00732 rows=1 loops=16)
+
+(6.1 ms)
+>>> SELECT d.* FROM tbl_doc_all d JOIN tbl_aprline_all l ON l.activedoc_id = d.activedoc_id JOIN tbl_user_master u ON u.mem_id = l.mem_id WHERE d.doc_status = '02'  ...
+(44.7 ms)
+>>> EXPLAIN ANALYZE SELECT d.* FROM tbl_doc_all d JOIN tbl_aprline_all l ON l.activedoc_id = d.activedoc_id JOIN tbl_user_master u ON u.mem_id = l.mem_id WHERE d.do ...
+EXPLAIN=-> Limit: 10 row(s)  (actual time=19.6..19.6 rows=10 loops=1)
+    -> Sort: d.created_date, limit input to 10 row(s) per chunk  (actual time=19.6..19.6 rows=10 loops=1)
+        -> Stream results  (cost=434579 rows=3922) (actual time=19..19.6 rows=16 loops=1)
+            -> Nested loop inner join  (cost=434579 rows=3922) (actual time=19..19.6 rows=16 loops=1)
+                -> Nested loop inner join  (cost=391496 rows=39219) (actual time=19..19.4 rows=16 loops=1)
+                    -> Filter: (u.login_id = 'perf_user_0001')  (cost=103 rows=100) (actual time=0.0208..0.398 rows=1 loops=1)
+                        -> Table scan on u  (cost=103 rows=1003) (actual time=0.019..0.289 rows=1003 loops=1)
+                    -> Filter: ((l.approve_status = '02') and (l.activedoc_id is not null))  (cost=3512 rows=391) (actual time=19..19 rows=16 loops=1)
+                        -> Index lookup on l using FKcup40gcocej79bvowrv1p5xy2 (mem_id=u.mem_id)  (cost=3512 rows=3910) (actual time=0.267..18.8 rows=4040 loops=1)
+                -> Filter: (d.doc_status = '02')  (cost=0.999 rows=0.1) (actual time=0.00791..0.00798 rows=1 loops=16)
+                    -> Single-row index lookup on d using PRIMARY (activedoc_id=l.activedoc_id)  (cost=0.999 rows=1) (actual time=0.00772..0.00774 rows=1 loops=16)
+
+(21.0 ms)
+>>> EXPLAIN ANALYZE SELECT COUNT(d.activedoc_id) FROM tbl_activedoc d JOIN tbl_aprline l ON l.activedoc_id = d.activedoc_id JOIN tbl_user_master u ON u.mem_id = l.m ...
+EXPLAIN=-> Aggregate: count(d.activedoc_id)  (cost=3133 rows=1) (actual time=0.561..0.561 rows=1 loops=1)
+    -> Nested loop inner join  (cost=3129 rows=40.4) (actual time=0.0717..0.558 rows=16 loops=1)
+        -> Nested loop inner join  (cost=2688 rows=404) (actual time=0.0427..0.431 rows=16 loops=1)
+            -> Filter: (u.login_id = 'perf_user_0001')  (cost=103 rows=100) (actual time=0.0204..0.339 rows=1 loops=1)
+                -> Table scan on u  (cost=103 rows=1003) (actual time=0.0183..0.23 rows=1003 loops=1)
+            -> Filter: ((l.approve_status = '02') and (l.activedoc_id is not null))  (cost=21.7 rows=4.03) (actual time=0.022..0.0908 rows=16 loops=1)
+                -> Index lookup on l using FKcup40gcocej79bvowrv1p5xy2 (mem_id=u.mem_id)  (cost=21.7 rows=40.3) (actual time=0.0208..0.0864 rows=40 loops=1)
+        -> Filter: (d.doc_status = '02')  (cost=0.992 rows=0.1) (actual time=0.00776..0.00784 rows=1 loops=16)
+            -> Single-row index lookup on d using PRIMARY (activedoc_id=l.activedoc_id)  (cost=0.992 rows=1) (actual time=0.00759..0.00762 rows=1 loops=16)
+
+(1.5 ms)
+>>> EXPLAIN ANALYZE SELECT COUNT(d.activedoc_id) FROM tbl_doc_all d JOIN tbl_aprline_all l ON l.activedoc_id = d.activedoc_id JOIN tbl_user_master u ON u.mem_id = l ...
+EXPLAIN=-> Aggregate: count(d.activedoc_id)  (cost=432405 rows=1) (actual time=20.1..20.1 rows=1 loops=1)
+    -> Nested loop inner join  (cost=432013 rows=3922) (actual time=19.7..20.1 rows=16 loops=1)
+        -> Nested loop inner join  (cost=388929 rows=39219) (actual time=19.7..20 rows=16 loops=1)
+            -> Filter: (u.login_id = 'perf_user_0001')  (cost=103 rows=100) (actual time=0.0112..0.317 rows=1 loops=1)
+                -> Table scan on u  (cost=103 rows=1003) (actual time=0.00996..0.232 rows=1003 loops=1)
+            -> Filter: ((l.approve_status = '02') and (l.activedoc_id is not null))  (cost=3486 rows=391) (actual time=19.7..19.7 rows=16 loops=1)
+                -> Index lookup on l using FKcup40gcocej79bvowrv1p5xy2 (mem_id=u.mem_id)  (cost=3486 rows=3910) (actual time=0.377..19.5 rows=4040 loops=1)
+        -> Filter: (d.doc_status = '02')  (cost=0.999 rows=0.1) (actual time=0.00597..0.00603 rows=1 loops=16)
+            -> Single-row index lookup on d using PRIMARY (activedoc_id=l.activedoc_id)  (cost=0.999 rows=1) (actual time=0.0058..0.00582 rows=1 loops=16)
+
+(21.0 ms)
+>>> SELECT DISTINCT d.* FROM tbl_activedoc d JOIN tbl_aprline l ON l.activedoc_id = d.activedoc_id JOIN tbl_user_master u ON u.mem_id = l.mem_id WHERE d.doc_status  ...
+(9.5 ms)
+>>> EXPLAIN ANALYZE SELECT DISTINCT d.* FROM tbl_activedoc d JOIN tbl_aprline l ON l.activedoc_id = d.activedoc_id JOIN tbl_user_master u ON u.mem_id = l.mem_id WHE ...
+EXPLAIN=-> Limit: 10 row(s)  (actual time=0.424..0.426 rows=10 loops=1)
+    -> Sort: d.created_date, limit input to 10 row(s) per chunk  (actual time=0.424..0.425 rows=10 loops=1)
+        -> Table scan on <temporary>  (cost=3100..3102 rows=40.4) (actual time=0.416..0.417 rows=10 loops=1)
+            -> Temporary table with deduplication  (cost=3099..3099 rows=40.4) (actual time=0.415..0.415 rows=10 loops=1)
+                -> Nested loop inner join  (cost=3095 rows=40.4) (actual time=0.101..0.385 rows=10 loops=1)
+                    -> Nested loop inner join  (cost=2688 rows=404) (actual time=0.0948..0.355 rows=10 loops=1)
+                        -> Filter: (u.login_id = 'perf_user_0001')  (cost=103 rows=100) (actual time=0.0222..0.277 rows=1 loops=1)
+                            -> Table scan on u  (cost=103 rows=1003) (actual time=0.02..0.189 rows=1003 loops=1)
+                        -> Filter: ((l.step_seq = 1) and (l.activedoc_id is not null))  (cost=21.7 rows=4.03) (actual time=0.0723..0.0764 rows=10 loops=1)
+                            -> Index lookup on l using FKcup40gcocej79bvowrv1p5xy2 (mem_id=u.mem_id)  (cost=21.7 rows=40.3) (actual time=0.071..0.074 rows=40 loops=1)
+                    -> Filter: (d.doc_status = '02')  (cost=0.908 rows=0.1) (actual time=0.0028..0.00286 rows=1 loops=10)
+                        -> Single-row index lookup on d using PRIMARY (activedoc_id=l.activedoc_id)  (cost=0.908 rows=1) (actual time=0.00267..0.0027 rows=1 loops=10)
+
+(1.4 ms)
+>>> SELECT DISTINCT d.* FROM tbl_doc_all d JOIN tbl_aprline_all l ON l.activedoc_id = d.activedoc_id JOIN tbl_user_master u ON u.mem_id = l.mem_id WHERE d.doc_statu ...
+(198.0 ms)
+>>> EXPLAIN ANALYZE SELECT DISTINCT d.* FROM tbl_doc_all d JOIN tbl_aprline_all l ON l.activedoc_id = d.activedoc_id JOIN tbl_user_master u ON u.mem_id = l.mem_id W ...
+EXPLAIN=-> Limit: 10 row(s)  (actual time=22.4..22.4 rows=10 loops=1)
+    -> Sort: d.created_date, limit input to 10 row(s) per chunk  (actual time=22.4..22.4 rows=10 loops=1)
+        -> Table scan on <temporary>  (cost=438404..438456 rows=3922) (actual time=22.4..22.4 rows=10 loops=1)
+            -> Temporary table with deduplication  (cost=438404..438404 rows=3922) (actual time=22.4..22.4 rows=10 loops=1)
+                -> Nested loop inner join  (cost=438012 rows=3922) (actual time=22..22.4 rows=10 loops=1)
+                    -> Nested loop inner join  (cost=397402 rows=39219) (actual time=1.79..17.1 rows=1010 loops=1)
+                        -> Filter: (u.login_id = 'perf_user_0001')  (cost=103 rows=100) (actual time=0.0121..0.299 rows=1 loops=1)
+                            -> Table scan on u  (cost=103 rows=1003) (actual time=0.0105..0.221 rows=1003 loops=1)
+                        -> Filter: ((l.step_seq = 1) and (l.activedoc_id is not null))  (cost=3570 rows=391) (actual time=1.78..16.8 rows=1010 loops=1)
+                            -> Index lookup on l using FKcup40gcocej79bvowrv1p5xy2 (mem_id=u.mem_id)  (cost=3570 rows=3910) (actual time=1.77..16.6 rows=4040 loops=1)
+                    -> Filter: (d.doc_status = '02')  (cost=0.935 rows=0.1) (actual time=0.00512..0.00512 rows=0.0099 loops=1010)
+                        -> Single-row index lookup on d using PRIMARY (activedoc_id=l.activedoc_id)  (cost=0.935 rows=1) (actual time=0.00497..0.00499 rows=1 loops=1010)
+
+(24.3 ms)
+>>> EXPLAIN ANALYZE SELECT COUNT(DISTINCT d.activedoc_id) FROM tbl_activedoc d JOIN tbl_aprline l ON l.activedoc_id = d.activedoc_id JOIN tbl_user_master u ON u.mem ...
+EXPLAIN=-> Aggregate: count(distinct d.activedoc_id)  (cost=3133 rows=1) (actual time=0.38..0.38 rows=1 loops=1)
+    -> Nested loop inner join  (cost=3129 rows=40.4) (actual time=0.111..0.376 rows=10 loops=1)
+        -> Nested loop inner join  (cost=2688 rows=404) (actual time=0.0868..0.308 rows=10 loops=1)
+            -> Filter: (u.login_id = 'perf_user_0001')  (cost=103 rows=100) (actual time=0.0173..0.234 rows=1 loops=1)
+                -> Table scan on u  (cost=103 rows=1003) (actual time=0.0155..0.16 rows=1003 loops=1)
+            -> Filter: ((l.step_seq = 1) and (l.activedoc_id is not null))  (cost=21.7 rows=4.03) (actual time=0.0694..0.0732 rows=10 loops=1)
+                -> Index lookup on l using FKcup40gcocej79bvowrv1p5xy2 (mem_id=u.mem_id)  (cost=21.7 rows=40.3) (actual time=0.0686..0.0712 rows=40 loops=1)
+        -> Filter: (d.doc_status = '02')  (cost=0.992 rows=0.1) (actual time=0.00666..0.00672 rows=1 loops=10)
+            -> Single-row index lookup on d using PRIMARY (activedoc_id=l.activedoc_id)  (cost=0.992 rows=1) (actual time=0.00653..0.00653 rows=1 loops=10)
+
+(1.9 ms)
+>>> EXPLAIN ANALYZE SELECT COUNT(DISTINCT d.activedoc_id) FROM tbl_doc_all d JOIN tbl_aprline_all l ON l.activedoc_id = d.activedoc_id JOIN tbl_user_master u ON u.m ...
+EXPLAIN=-> Aggregate: count(distinct d.activedoc_id)  (cost=438444 rows=1) (actual time=21.7..21.7 rows=1 loops=1)
+    -> Nested loop inner join  (cost=438052 rows=3922) (actual time=21.4..21.7 rows=10 loops=1)
+        -> Nested loop inner join  (cost=397402 rows=39219) (actual time=1.79..16.8 rows=1010 loops=1)
+            -> Filter: (u.login_id = 'perf_user_0001')  (cost=103 rows=100) (actual time=0.00908..0.275 rows=1 loops=1)
+                -> Table scan on u  (cost=103 rows=1003) (actual time=0.00808..0.2 rows=1003 loops=1)
+            -> Filter: ((l.step_seq = 1) and (l.activedoc_id is not null))  (cost=3570 rows=391) (actual time=1.78..16.5 rows=1010 loops=1)
+                -> Index lookup on l using FKcup40gcocej79bvowrv1p5xy2 (mem_id=u.mem_id)  (cost=3570 rows=3910) (actual time=1.78..16.4 rows=4040 loops=1)
+        -> Filter: (d.doc_status = '02')  (cost=0.936 rows=0.1) (actual time=0.0048..0.0048 rows=0.0099 loops=1010)
+            -> Single-row index lookup on d using PRIMARY (activedoc_id=l.activedoc_id)  (cost=0.936 rows=1) (actual time=0.00467..0.00468 rows=1 loops=1010)
+
+(22.9 ms)
