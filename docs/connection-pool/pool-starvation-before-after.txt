@@ -1,0 +1,18 @@
+# pool-size=20 (Tn=20, 공식보다 1 작음) / 동시 최종결재 20건
+2026-10-21T01:23:08.591+09:00 ERROR 35346 --- [groupware] [ool-3-thread-11] o.h.engine.jdbc.spi.SqlExceptionHelper   : HikariPool-1 - Connection is not available, request timed out after 30008ms (total=20, active=20, idle=0, waiting=0)
+org.springframework.dao.DataAccessResourceFailureException: unable to obtain isolated JDBC connection [HikariPool-1 - Connection is not available, request timed out after 30008ms (total=20, active=20, idle=0, waiting=0)] [n/a]
+org.springframework.dao.DataAccessResourceFailureException: unable to obtain isolated JDBC connection [HikariPool-1 - Connection is not available, request timed out after 30008ms (total=20, active=20, idle=0, waiting=0)] [n/a]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:278) ~[spring-orm-6.2.17.jar:6.2.17]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:256) ~[spring-orm-6.2.17.jar:6.2.17]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241) ~[spring-orm-6.2.17.jar:6.2.17]
+	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:560) ~[spring-orm-6.2.17.jar:6.2.17]
+	at org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61) ~[spring-tx-6.2.17.jar:6.2.17]
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:160) ~[spring-tx-6.2.17.jar:6.2.17]
+	at com.byh.groupware.domain.approval.service.JpaApproveAction.archiveDocument(JpaApproveAction.java:362) ~[classes/:na]
+	at com.byh.groupware.domain.approval.service.JpaApproveAction.processFinalApproval(JpaApproveAction.java:296) ~[classes/:na]
+	at com.byh.groupware.domain.approval.service.JpaApproveAction.doProcess(JpaApproveAction.java:137) ~[classes/:na]
+	at com.byh.groupware.domain.approval.service.JpaApproveAction$$SpringCGLIB$$0.doProcess(<generated>) ~[classes/:na]
+	at com.byh.groupware.domain.approval.service.JpaApprovalService.doProcess(JpaApprovalService.java:213) ~[classes/:na]
+
+# pool-size=21 (Tn × (Cm - 1) + 1) / 동시 최종결재 20건
+2026-10-21T01:22:17.099+09:00  INFO 35144 --- [groupware] [           main] c.b.g.d.a.s.FinalApprovalDeadlockTest    : 최종결재 결과 - 성공: 20, 실패: 0, 실패 유형: {}

@@ -45,12 +45,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   대신 @AfterEach 에서 이번 실행에서 만든 데이터만 골라 삭제함 (채번 테이블의 시퀀스 증가분은 남음)
  * - tbl_aprline.activedoc_id 인덱스(idx_aprline_activedoc_id)가 없으면 실패함 -> 인덱스 누락 회귀 방지용
  * - 인덱스 추가 전 InnoDB 데드락 로그: docs/deadlock/innodb-deadlock-before-index.txt
+ * - 동시 스레드 수가 운영 최대치와 같으므로 커넥션 풀 크기 산정 검증도 겸함
  */
 @Slf4j
 @SpringBootTest
 class FinalApprovalDeadlockTest {
 
-    private static final int DOC_COUNT = 5;
+    // 운영 최대 동시성(server.tomcat.threads.max)과 동일하게 맞춤
+    // -> 커넥션 풀 크기(hikari.maximum-pool-size)가 부족하면 커넥션 고갈로 실패함
+    private static final int DOC_COUNT = 20;
 
     @Autowired
     private JpaApprovalService jpaApprovalService;

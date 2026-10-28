@@ -21,7 +21,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 로컬 MySQL `localhost:3306/groupware_db` (계정 `gw_user`)이 떠 있어야 앱 실행과 테스트가 모두 동작한다. 별도의 테스트 프로파일이나 인메모리 DB는 없다.
 - `ddl-auto: none`이라 스키마는 DB에서 직접 관리한다. 엔티티를 바꾸면 테이블 DDL도 따로 반영해야 한다.
 - 테스트는 `@SpringBootTest` + `@Transactional` + `@Rollback(false)` 형태라 **실제 DB에 커밋된다**.
-- 동시성 테스트(`FinalApprovalDeadlockTest`)는 스레드마다 커밋해야 해서 `@Transactional`을 쓰지 않고, `@AfterEach`에서 이번 실행에서 만든 데이터만 지운다. 동시 스레드 수는 Hikari 풀 크기(기본 10)보다 작게 둔다. ID 생성(`@GeneratedValue` AUTO → `*_seq` 테이블)이 별도 커넥션을 쓰기 때문에, 풀 크기 이상이면 커넥션 고갈로 멈춘다.
+- 동시성 테스트(`FinalApprovalDeadlockTest`)는 스레드마다 커밋해야 해서 `@Transactional`을 쓰지 않고, `@AfterEach`에서 이번 실행에서 만든 데이터만 지운다. 동시 스레드 수는 운영 최대 동시성(`server.tomcat.threads.max`)과 같게 둔다.
+- 커넥션 풀 크기는 `Tn × (Cm − 1) + 1`로 산정한다(`application.yaml`). Tn은 Tomcat 최대 스레드 수이고, Cm은 2다. ID 생성(`@GeneratedValue` AUTO → `*_seq` 테이블)이 트랜잭션 커넥션과 별도로 커넥션을 하나 더 쓰기 때문이다. 그래서 Tomcat 스레드 수를 바꾸면 풀 크기도 함께 바꿔야 한다. 풀이 부족하면 커넥션 고갈로 30초 동안 멈춘다(`docs/connection-pool/`).
 - `DataInitConfig`(CommandLineRunner)가 기동 시 회사/부서/문서양식(FORM-01, FORM-02) 기초 데이터가 비어 있으면 넣는다.
 
 ## 아키텍처
