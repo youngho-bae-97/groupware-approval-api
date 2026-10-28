@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -154,10 +153,12 @@ public void doProcess(
 //                        .orElseThrow(() ->
 //                                new IllegalArgumentException("문서가 존재하지 않습니다."));
 
-        Optional<ActiveDoc> activeDoc = activeDocRepository.findById(dto.getActiveDocId());
+        // 진행 문서가 없으면 이미 최종결재되어 완료 테이블로 이관된 문서
+        ActiveDoc activeDoc = activeDocRepository.findById(dto.getActiveDocId())
+                .orElseThrow(() -> new DocStatusMissMatchException("이미 처리된 문서입니다."));
 
         // 결재 가능 상태 확인
-        if (!"02".equals(activeDoc.get().getDocStatus())) {
+        if (!"02".equals(activeDoc.getDocStatus())) {
             throw new DocStatusMissMatchException(
                     "결재 가능한 상태가 아닙니다."
             );
@@ -268,10 +269,14 @@ public void doProcess(
 //                statusMapRepository.findForFinalApprove(
 //                        dto.getDocId()
 //                );
-        Optional<ActiveDoc> activeDoc = activeDocRepository.findByIdForUpdate(dto.getActiveDocId());
+        // 비관적 락 획득 후 최신 값으로 재검증
+        // - 먼저 커밋한 최종결재가 진행 문서를 삭제했으면 행이 없음
+        // - 반려 등 상태만 바꾼 트랜잭션이 먼저 커밋했으면 docStatus 가 02 가 아님
+        ActiveDoc activeDoc = activeDocRepository.findByIdForUpdate(dto.getActiveDocId())
+                .orElseThrow(() -> new DocStatusMissMatchException("이미 처리된 문서입니다."));
 
         // 락 획득 후 상태 재검증
-        if (!"02".equals(activeDoc.get().getDocStatus())) {
+        if (!"02".equals(activeDoc.getDocStatus())) {
             throw new DocStatusMissMatchException(
                     "이미 처리된 문서입니다."
             );

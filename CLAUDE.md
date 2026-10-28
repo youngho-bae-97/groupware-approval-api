@@ -54,7 +54,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 동시성 제어
 - **문서번호 채번**: `NoMasterRepository.findLockByYearAndDocFormId`에서 `PESSIMISTIC_WRITE`를 건다. 번호 형식은 `연도 + 양식ID + 5자리 시퀀스`(예: `2026FORM-0100001`)이고, 해당 연도/양식 레코드가 없으면 먼저 생성한 뒤 락을 잡는다.
-- **최종 결재**: `ActiveDocRepository.findByIdForUpdate`로 비관적 락을 잡은 뒤 상태를 다시 검증한다.
+- **최종 결재**: `ActiveDocRepository.findByIdForUpdate`(커스텀 구현 `ActiveDocRepositoryCustomImpl`)로 비관적 락을 잡은 뒤, 락 시점의 최신 값으로 상태를 다시 검증한다. 행이 없거나(먼저 끝난 최종결재가 이관) `docStatus != 02`이면(반려 등) `DocStatusMissMatchException`을 던진다(`FinalApprovalPessimisticLockTest`).
+  - `@Lock(PESSIMISTIC_WRITE)` 쿼리를 쓰지 않는다. `validateApproval`에서 이미 영속 상태가 된 엔티티는 FOR UPDATE 결과로 값이 갱신되지 않아서, 재검증이 락 이전의 값을 보게 된다(실측). 그래서 `em.refresh(entity, PESSIMISTIC_WRITE)`를 쓴다. 락 없는 `refresh`는 REPEATABLE READ 스냅샷을 다시 읽으므로 최신 값을 가져오지 못한다.
+  - `aprLines`가 cascade ALL(REFRESH 포함)이라 refresh가 해당 문서의 결재선까지 조인해서 FOR UPDATE로 잠근다. 같은 문서의 행만 잠그고, 최종결재가 어차피 수정하고 삭제하는 행이다.
+  - 반려 기능을 추가할 때도 같은 메서드로 락을 잡고 상태를 검증해야 최종결재와 직렬화된다.
 - **일반 결재**: `ActiveDoc.version`(`@Version`)으로 낙관적 락을 건다. 일반결재는 `ActiveDoc` 값이 바뀌지 않아 UPDATE가 나가지 않으므로, `em.lock(activeDoc, OPTIMISTIC_FORCE_INCREMENT)`으로 version을 강제로 올린다. 이미 영속성 컨텍스트에 있는 엔티티에는 `@Lock` 쿼리로 다시 조회해도 락 모드가 적용되지 않는다(실측). 그래서 리포지토리 쿼리가 아니라 `em.lock`을 쓴다. 충돌하면 `GlobalExceptionHandler`가 409를 응답한다.
 - 최종 결재에는 force increment를 쓰지 않는다. 커밋 시점에 version UPDATE가 나가는데, 그 전에 같은 행을 벌크 삭제하기 때문이다.
 - `ActiveDoc.version`(낙관적 락)과 `DocumentMaster.version`(재기안 문서 버전)은 서로 다른 개념이다.

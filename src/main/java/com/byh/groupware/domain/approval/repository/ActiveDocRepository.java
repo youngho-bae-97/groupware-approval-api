@@ -1,20 +1,18 @@
 package com.byh.groupware.domain.approval.repository;
 
 import com.byh.groupware.domain.approval.entity.ActiveDoc;
-import jakarta.persistence.LockModeType;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface ActiveDocRepository extends JpaRepository<ActiveDoc, Long> {
+public interface ActiveDocRepository extends JpaRepository<ActiveDoc, Long>, ActiveDocRepositoryCustom {
 
     // 결재대기함(TODO): 내 결재선이 진행중(approveStatus 02 = 현재 내 차례)인 진행 문서
     // 한 문서에서 현재 차례인 결재선은 한 줄이므로 distinct 불필요
@@ -67,14 +65,6 @@ public interface ActiveDocRepository extends JpaRepository<ActiveDoc, Long> {
 
     @EntityGraph(attributePaths = {"documentMaster", "aprLines"})
     Optional<ActiveDoc> findWithDetailsById(Long id);
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("""
-    select d
-    from ActiveDoc d
-    where d.id = :id
-    """)
-    Optional<ActiveDoc> findByIdForUpdate(@Param("id") Long id);
 
     // 최종결재 시 hot 데이터 제거용 벌크 삭제 (결재선 삭제 후 호출)
     @Modifying(flushAutomatically = true, clearAutomatically = true)
