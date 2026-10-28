@@ -16,6 +16,32 @@ import java.util.Optional;
 
 public interface ActiveDocRepository extends JpaRepository<ActiveDoc, Long> {
 
+    // 결재대기함(TODO): 내 결재선이 진행중(approveStatus 02 = 현재 내 차례)인 진행 문서
+    // 한 문서에서 현재 차례인 결재선은 한 줄이므로 distinct 불필요
+    @Query(
+            value = """
+        select d
+        from ActiveDoc d
+        join d.aprLines filterLine
+        where d.docStatus = '02'
+          and filterLine.approveStatus = '02'
+          and filterLine.userMaster.loginId = :loginId
+        """,
+            countQuery = """
+        select count(d)
+        from ActiveDoc d
+        join d.aprLines filterLine
+        where d.docStatus = '02'
+          and filterLine.approveStatus = '02'
+          and filterLine.userMaster.loginId = :loginId
+        """
+    )
+    Page<ActiveDoc> docToDoList(
+            Pageable pageable,
+            @Param("loginId") String loginId
+    );
+
+    // 기안함(DRAFT): 내가 기안한(stepSeq 1 = 기안자) 진행 문서
     @Query(
             value = """
         select distinct d
@@ -34,7 +60,7 @@ public interface ActiveDocRepository extends JpaRepository<ActiveDoc, Long> {
           and filterLine.userMaster.loginId = :loginId
         """
     )
-    Page<ActiveDoc> docToDoList(
+    Page<ActiveDoc> docDraftList(
             Pageable pageable,
             @Param("loginId") String loginId
     );

@@ -217,7 +217,14 @@ public class JpaApprovalService {
         dto.setLoginMemId(loginUser.getLoginId());
         //dto.setLoginDeptCode(loginUser.getDeptCode());
 
-        Page<ActiveDoc> activeDocs = activeDocRepository.docToDoList(pageable,loginUser.getLoginId());
+        // 조회 타입이 없으면 결재대기함으로 조회
+        String viewType = StringUtils.hasText(dto.getViewType()) ? dto.getViewType().toUpperCase() : "TODO";
+
+        Page<ActiveDoc> activeDocs = switch (viewType) {
+            case "TODO" -> activeDocRepository.docToDoList(pageable, loginUser.getLoginId());
+            case "DRAFT" -> activeDocRepository.docDraftList(pageable, loginUser.getLoginId());
+            default -> throw new ApprovalInvalidTypeException("지원하지 않는 조회 타입입니다: " + viewType);
+        };
 
         return activeDocs;
 //        return approvalMapper.selectApprovalList(dto);
