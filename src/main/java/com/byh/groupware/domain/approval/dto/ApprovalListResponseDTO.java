@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class ApprovalListResponseDTO {
-    Long id;
+    Long id;            // 문서 마스터 ID (상세 조회 / 결재 API 의 문서 식별자)
     String docTitle;
 //    String drafterName;
 //    String currApproverName;
@@ -23,7 +23,7 @@ public class ApprovalListResponseDTO {
 
 
     public ApprovalListResponseDTO(ActiveDoc activeDoc){
-        this.id = activeDoc.getId();
+        this.id = activeDoc.getDocumentMaster().getId();
         this.docTitle = activeDoc.getDocTitle();
 
 

@@ -2,7 +2,10 @@ package com.byh.groupware.domain.approval.service;
 
 import com.byh.groupware.domain.approval.dto.*;
 import com.byh.groupware.domain.approval.entity.*;
+import com.byh.groupware.domain.approval.exception.ApprovalAccessDeniedException;
+import com.byh.groupware.domain.approval.exception.ApprovalDocumentNotFoundException;
 import com.byh.groupware.domain.approval.exception.ApprovalInvalidTypeException;
+import com.byh.groupware.domain.approval.exception.DocStatusMissMatchException;
 import com.byh.groupware.domain.approval.exception.MissingApprovalLineException;
 import com.byh.groupware.domain.approval.exception.MissingNextApproverException;
 import com.byh.groupware.domain.approval.repository.*;
@@ -10,14 +13,12 @@ import com.byh.groupware.domain.approval.type.ApprovalType;
 import com.byh.groupware.domain.user.entity.UserMaster;
 import com.byh.groupware.domain.user.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -64,8 +65,12 @@ public class JpaApprovalService {
 
     }
 
+    /**
+     * 기안
+     * @return 생성된 문서 마스터 ID (API 의 문서 식별자)
+     */
     @Transactional
-    public void draft(ApprovalDraftRequestDTO approvalDraftRequestDTO, UserMaster loginUser) {
+    public Long draft(ApprovalDraftRequestDTO approvalDraftRequestDTO, UserMaster loginUser) {
 
         loginUser = userRepository.findByLoginId(loginUser.getLoginId());
 
@@ -193,6 +198,28 @@ public class JpaApprovalService {
 
         documentMasterRepository.save(documentMaster);
 
+        return documentMaster.getId();
+    }
+
+    /**
+     * 결재 (POST /api/approvals/{documentMasterId}/approve)
+     * - API 는 문서 마스터 ID 로 문서를 식별하므로, 진행 문서 ID 를 찾아 결재 처리에 넘김
+     * - 진행 문서가 없으면 이미 최종결재되어 완료 테이블로 이관된 문서
+     */
+    @Transactional
+    public void approve(Long documentMasterId, ApprovalProcessRequestDTO dto, UserMaster loginUser) {
+        if (!documentMasterRepository.existsById(documentMasterId)) {
+            throw new ApprovalDocumentNotFoundException("해당 문서를 찾을 수 없습니다. ID: " + documentMasterId);
+        }
+
+        Long activeDocId = activeDocRepository.findIdByDocumentMasterId(documentMasterId)
+                .orElseThrow(() -> new DocStatusMissMatchException("이미 처리된 문서입니다."));
+
+        dto.setDocMasterId(documentMasterId);
+        dto.setActiveDocId(activeDocId);
+        dto.setApproveType(ApprovalType.APPROVE.name());
+
+        doProcess(dto, loginUser);
     }
 
 
@@ -244,24 +271,26 @@ public class JpaApprovalService {
 
     }
 
-    public ApprovalDetailResponseDTO getApprovalDetail(Long docId, String docStatus, String loginId) {
+    /**
+     * 상세 조회 (GET /api/approvals/{documentMasterId})
+     * - 문서 마스터는 진행/완료 공통이므로, 진행 문서가 있으면 진행 문서를, 없으면 완료 문서를 조회
+     *   (클라이언트가 문서 상태를 알고 테이블을 골라 요청할 필요 없음)
+     */
+    public ApprovalDetailResponseDTO getApprovalDetail(Long documentMasterId, String loginId) {
 
         ApprovalDetailResponseDTO detail;
 
-        if("03".equals(docStatus)){
-            EndDoc endDoc = endDocRepository.findWithDetailsById(docId)
-                    .orElseThrow(() -> new EntityNotFoundException("해당 문서를 찾을 수 없습니다. ID: " + docId));
+        Optional<ActiveDoc> activeDoc = activeDocRepository.findWithDetailsByDocumentMasterId(documentMasterId);
 
+        if (activeDoc.isPresent()) {
+            String currApprover = aprLineRepository.findCurrApprover(activeDoc.get().getId()).getUserMaster().getLoginId();
 
-            detail = new ApprovalDetailResponseDTO(endDoc,loginId);
-
+            detail = new ApprovalDetailResponseDTO(activeDoc.get(), loginId, currApprover);
         } else {
-            ActiveDoc activeDoc = activeDocRepository.findWithDetailsById(docId)
-                    .orElseThrow(() -> new EntityNotFoundException("해당 문서를 찾을 수 없습니다. ID: " + docId));
+            EndDoc endDoc = endDocRepository.findWithDetailsByDocumentMasterId(documentMasterId)
+                    .orElseThrow(() -> new ApprovalDocumentNotFoundException("해당 문서를 찾을 수 없습니다. ID: " + documentMasterId));
 
-            String currApprover = aprLineRepository.findCurrApprover(docId).getUserMaster().getLoginId();
-
-            detail = new ApprovalDetailResponseDTO(activeDoc,loginId,currApprover);
+            detail = new ApprovalDetailResponseDTO(endDoc, loginId);
         }
 
         boolean isParticipant = detail.getApproverLines().stream()
@@ -271,7 +300,7 @@ public class JpaApprovalService {
 
         // 문서 열람 권한 체크
         if (!isDrafter && !isParticipant) {
-            throw new AccessDeniedException("이 문서를 열람할 권한이 없습니다.");
+            throw new ApprovalAccessDeniedException("이 문서를 열람할 권한이 없습니다.");
         }
 
         // 결재 버튼 활성화 여부 판단

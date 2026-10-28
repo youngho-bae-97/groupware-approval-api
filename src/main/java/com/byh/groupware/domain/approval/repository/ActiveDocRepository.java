@@ -63,8 +63,13 @@ public interface ActiveDocRepository extends JpaRepository<ActiveDoc, Long>, Act
             @Param("loginId") String loginId
     );
 
+    // API 의 문서 식별자는 진행/완료 구분 없는 문서 마스터 ID 이므로, 마스터 ID 로 진행 문서를 찾음
     @EntityGraph(attributePaths = {"documentMaster", "aprLines"})
-    Optional<ActiveDoc> findWithDetailsById(Long id);
+    Optional<ActiveDoc> findWithDetailsByDocumentMasterId(Long documentMasterId);
+
+    // 엔티티를 영속성 컨텍스트에 올리지 않도록 ID 만 조회 (결재 처리 시 락 재검증에 영향 주지 않음)
+    @Query("select d.id from ActiveDoc d where d.documentMaster.id = :documentMasterId")
+    Optional<Long> findIdByDocumentMasterId(@Param("documentMasterId") Long documentMasterId);
 
     // 최종결재 시 hot 데이터 제거용 벌크 삭제 (결재선 삭제 후 호출)
     @Modifying(flushAutomatically = true, clearAutomatically = true)

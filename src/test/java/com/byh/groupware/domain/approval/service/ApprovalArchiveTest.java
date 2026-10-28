@@ -80,7 +80,7 @@ class ApprovalArchiveTest {
         assertThat(endDoc.getEndAprLines()).hasSize(2);
 
         // 완료 문서 상세 조회 (마스터 정보는 DocumentMaster 에서)
-        ApprovalDetailResponseDTO detail = jpaApprovalService.getApprovalDetail(endDoc.getId(), "03", drafter.getLoginId());
+        ApprovalDetailResponseDTO detail = jpaApprovalService.getApprovalDetail(masterId, drafter.getLoginId());
         assertThat(detail.getDocId()).isEqualTo(docId);
         assertThat(detail.getDrafterName()).isEqualTo("기안자");
         assertThat(detail.getDocStatus()).isEqualTo("03");

@@ -11,5 +11,5 @@ import java.util.Optional;
 public interface EndDocRepository extends JpaRepository<EndDoc, Long> {
 
     @EntityGraph(attributePaths = {"documentMaster", "endAprLines"})
-    Optional<EndDoc> findWithDetailsById(Long id);
+    Optional<EndDoc> findWithDetailsByDocumentMasterId(Long documentMasterId);
 }

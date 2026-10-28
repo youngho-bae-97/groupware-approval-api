@@ -35,8 +35,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 새 작업은 JPA 쪽에 한다. 레거시 코드는 참고용이다.
 
 ### 인증
-- `SecurityConfig`는 모든 요청을 `permitAll`로 열어 두고 CSRF를 끈 상태다. 실제 인증은 **HttpSession**으로 한다. `UserController`가 로그인 시 `session.setAttribute("loginUser", UserMaster)`로 저장하고, 각 컨트롤러가 `session.getAttribute("loginUser")`로 꺼낸다.
+- `SecurityConfig`는 모든 요청을 `permitAll`로 열어 두고 CSRF를 끈 상태다. 실제 인증은 **HttpSession**으로 한다. `AuthController`가 로그인 시 `session.setAttribute("loginUser", UserMaster)`로 저장하고, 각 컨트롤러가 `session.getAttribute("loginUser")`로 꺼낸다(`ApprovalController.getLoginUser`, 없으면 401).
 - 세션의 `UserMaster`는 detached 상태라서 서비스에서 `userRepository.findByLoginId(...)`로 다시 조회한 뒤 사용한다.
+
+### REST API
+| 메서드 / URL | 설명 | 응답 |
+|---|---|---|
+| `POST /api/users` | 회원가입 | 201 |
+| `POST /api/auth/login`, `POST /api/auth/logout` | 로그인(세션 생성) / 로그아웃 | 200 / 204 |
+| `POST /api/approvals` | 기안 | 201 + `Location: /api/approvals/{id}` |
+| `GET /api/approvals?viewType=TODO\|DRAFT` | 결재대기함(기본) / 기안함 | 200 |
+| `GET /api/approvals/{id}` | 상세 (진행/완료 자동 판별) | 200 |
+| `POST /api/approvals/{id}/approve` | 결재 (본문 수정이 없으면 요청 본문 생략 가능) | 204 |
+
+- 문서 식별자 `{id}`는 **문서 마스터 ID**다. 마스터는 진행·완료 공통이라 최종결재로 이관돼도 URL이 바뀌지 않는다. 서비스가 마스터 ID로 진행 문서를 찾고, 없으면 완료 문서를 찾는다.
+- 결재 행위는 `/{id}/approve`처럼 하위 경로로 표현한다. 반려를 추가하면 `/{id}/reject`로 만들고, 컨트롤러가 `approveType`을 세팅해 전략 패턴으로 위임한다.
+- 상태 코드: 로그인 없음 401, 열람/결재 권한 없음 403, 문서 없음 404, 이미 처리됐거나 결재할 수 없는 상태 409(`DocStatusMissMatchException`), 낙관적 락 충돌 409.
+- API 흐름 테스트: `ApprovalApiTest` (MockMvc).
 
 ### 결재 처리: 전략 패턴
 - `ApprovalAction` 인터페이스(`getActionType()`, `doProcess()`)를 구현한 빈들을 `JpaApprovalService`가 `@PostConstruct`에서 `EnumMap<ApprovalType, ApprovalAction>`으로 등록하고, 요청의 `approveType`으로 골라 위임한다.

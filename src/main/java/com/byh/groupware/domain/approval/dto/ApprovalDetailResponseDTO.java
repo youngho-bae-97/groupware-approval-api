@@ -15,6 +15,8 @@ import java.util.Optional;
 @NoArgsConstructor
 @Schema(description = "결재 상세 응답 정보")
 public class ApprovalDetailResponseDTO {
+    @Schema(description = "문서 마스터 ID (API 문서 식별자)", example = "1")
+    private Long id;
     @Schema(description = "문서 번호", example = "2026FORM-0100001")
     private String docId;
     @Schema(description = "문서 제목", example = "2026년 상반기 휴가 신청")
@@ -41,6 +43,7 @@ public class ApprovalDetailResponseDTO {
 
     public ApprovalDetailResponseDTO(EndDoc entity, String currentUserId) {
         // 1. 기본 마스터 정보 (DocumentMaster)
+        this.id = entity.getDocumentMaster().getId();
         this.docId = entity.getDocumentMaster().getDocId();
         this.drafterId = entity.getEndAprLines().get(0).getApproverId();
         this.drafterName = entity.getDocumentMaster().getDrafterName();
@@ -69,6 +72,7 @@ public class ApprovalDetailResponseDTO {
 
     public ApprovalDetailResponseDTO(ActiveDoc entity, String currentUserId, String currApprover) {
         // 1. 기본 마스터 정보 (DocumentMaster)
+        this.id = entity.getDocumentMaster().getId();
         this.docId = entity.getDocumentMaster().getDocId();
         this.drafterId = entity.getAprLines().get(0).getUserMaster().getLoginId();
         this.drafterName = entity.getDocumentMaster().getDrafterName();

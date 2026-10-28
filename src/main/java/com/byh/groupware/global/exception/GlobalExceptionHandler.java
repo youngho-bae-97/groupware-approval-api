@@ -45,15 +45,26 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+    // 문서가 결재할 수 없는 상태(이미 처리됨 등) -> 현재 리소스 상태와 충돌
     @ExceptionHandler(DocStatusMissMatchException.class)
     public ResponseEntity<ErrorResponse> handleDocStatusMissMatch(DocStatusMissMatchException e) {
 
         ErrorResponse response = new ErrorResponse(
-                400,
+                409,
                 e.getMessage()
         );
 
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+    @ExceptionHandler(ApprovalDocumentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleApprovalDocumentNotFound(ApprovalDocumentNotFoundException e) {
+
+        ErrorResponse response = new ErrorResponse(
+                404,
+                e.getMessage()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
     @ExceptionHandler(MissingNextApproverException.class)
     public ResponseEntity<ErrorResponse> handleMissingNextApprover(MissingNextApproverException e) {
