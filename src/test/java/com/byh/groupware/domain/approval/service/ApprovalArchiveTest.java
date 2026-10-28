@@ -62,7 +62,7 @@ class ApprovalArchiveTest {
         request.setApproveType("APPROVE");
 
         //when
-        jpaApprovalService.doProcess(request, approver);
+        jpaApprovalService.doProcess(request, approver.getLoginId());
         em.flush();
         em.clear();
 
@@ -116,7 +116,7 @@ class ApprovalArchiveTest {
                 createLine(1, drafter, "01"),
                 createLine(2, approver, "02")
         ));
-        jpaApprovalService.draft(dto, drafter);
+        jpaApprovalService.draft(dto, drafter.getLoginId());
         return dto.getDocId();
     }
 

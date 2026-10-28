@@ -3,12 +3,10 @@ package com.byh.groupware.domain.approval.controller;
 import com.byh.groupware.domain.approval.dto.*;
 import com.byh.groupware.domain.approval.entity.ActiveDoc;
 import com.byh.groupware.domain.approval.service.JpaApprovalService;
-import com.byh.groupware.domain.user.exception.MissingLoginUserException;
-import com.byh.groupware.domain.user.entity.UserMaster;
+import com.byh.groupware.global.security.LoginUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -24,6 +23,7 @@ import java.net.URI;
 
 /**
  * 전자결재 문서 API
+ * - 모든 API 는 인증이 필요함 (SecurityConfig). 로그인 사용자는 세션의 SecurityContext 에서 @AuthenticationPrincipal 로 받음
  * - 문서 리소스 식별자는 문서 마스터 ID 를 사용함
  *   (문서 마스터는 진행/완료 구분 없이 유지되므로, 최종결재로 완료 테이블로 이관되어도 URL 이 바뀌지 않음)
  */
@@ -41,13 +41,11 @@ public class ApprovalController {
     @PostMapping
     public ResponseEntity<ApprovalDraftResponseDTO> draft(
             @Parameter(description = "문서 기안에 필요한 데이터(json)") @RequestBody @Valid ApprovalDraftRequestDTO approvalDraftRequestDTO,
-            HttpSession session) {
-
-        UserMaster loginUser = getLoginUser(session);
+            @AuthenticationPrincipal LoginUser loginUser) {
 
         log.info("기안 요청 started!! - userId: {}, title: {}", loginUser.getLoginId(), approvalDraftRequestDTO.getDocTitle());
 
-        Long documentMasterId = jpaApprovalService.draft(approvalDraftRequestDTO, loginUser);
+        Long documentMasterId = jpaApprovalService.draft(approvalDraftRequestDTO, loginUser.getLoginId());
 
         log.info("기안 요청 ended!! - userId: {}, docId: {}", loginUser.getLoginId(), approvalDraftRequestDTO.getDocId());
 
@@ -66,11 +64,9 @@ public class ApprovalController {
             @Parameter(description = "조회 타입 및 검색 키워드 (예: /api/approvals?viewType=TODO&searchKeyword=2026)")
             @ModelAttribute ApprovalSearchDTO dto,
             @PageableDefault(size = 5, sort = "createdDate") Pageable pageable,
-            HttpSession session) {
+            @AuthenticationPrincipal LoginUser loginUser) {
 
-        UserMaster loginUser = getLoginUser(session);
-
-        Page<ActiveDoc> page = jpaApprovalService.getApprovalList(dto, loginUser, pageable);
+        Page<ActiveDoc> page = jpaApprovalService.getApprovalList(dto, loginUser.getLoginId(), pageable);
 
         return page.map(ApprovalListResponseDTO::new);
     }
@@ -79,9 +75,7 @@ public class ApprovalController {
     @GetMapping("/{documentMasterId}")
     public ApprovalDetailResponseDTO getDocDetail(
             @Parameter(description = "문서 마스터 ID", example = "1") @PathVariable Long documentMasterId,
-            HttpSession session) {
-
-        UserMaster loginUser = getLoginUser(session);
+            @AuthenticationPrincipal LoginUser loginUser) {
 
         return jpaApprovalService.getApprovalDetail(documentMasterId, loginUser.getLoginId());
     }
@@ -91,25 +85,14 @@ public class ApprovalController {
     public ResponseEntity<Void> approve(
             @Parameter(description = "문서 마스터 ID", example = "1") @PathVariable Long documentMasterId,
             @Parameter(description = "결재 시 본문 수정 내용(선택)") @RequestBody(required = false) @Valid ApprovalProcessRequestDTO approvalProcessRequestDTO,
-            HttpSession session) {
+            @AuthenticationPrincipal LoginUser loginUser) {
 
-        UserMaster loginUser = getLoginUser(session);
         ApprovalProcessRequestDTO request = approvalProcessRequestDTO != null ? approvalProcessRequestDTO : new ApprovalProcessRequestDTO();
 
         log.info("결재 요청 started!! - userId: {}, documentMasterId: {}", loginUser.getLoginId(), documentMasterId);
-        jpaApprovalService.approve(documentMasterId, request, loginUser);
+        jpaApprovalService.approve(documentMasterId, request, loginUser.getLoginId());
         log.info("결재 요청 ended!! - userId: {}, documentMasterId: {}", loginUser.getLoginId(), documentMasterId);
 
         return ResponseEntity.noContent().build();
-    }
-
-    // 로그인 성공 시 세션에 저장해둔 사용자 정보를 꺼냄 (없으면 401)
-    private UserMaster getLoginUser(HttpSession session) {
-        UserMaster loginUser = (UserMaster) session.getAttribute("loginUser");
-
-        if (loginUser == null) {
-            throw new MissingLoginUserException("로그인이 필요합니다.");
-        }
-        return loginUser;
     }
 }

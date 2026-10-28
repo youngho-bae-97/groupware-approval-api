@@ -7,6 +7,9 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -133,6 +136,41 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
+    // 로그인 실패 (AuthenticationManager)
+    // - 존재하지 않는 아이디도 BadCredentialsException 으로 바뀌어 넘어오므로, 아이디 존재 여부가 드러나지 않음
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException e) {
+
+        ErrorResponse response = new ErrorResponse(
+                401,
+                "아이디 또는 비밀번호가 일치하지 않습니다."
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ErrorResponse> handleDisabled(DisabledException e) {
+
+        ErrorResponse response = new ErrorResponse(
+                401,
+                "사용이 중지된 계정입니다."
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException e) {
+
+        ErrorResponse response = new ErrorResponse(
+                401,
+                "인증에 실패했습니다."
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(MissingLoginUserException.class)
     public ResponseEntity<ErrorResponse> handleMissingLoginUser(MissingLoginUserException e) {
 

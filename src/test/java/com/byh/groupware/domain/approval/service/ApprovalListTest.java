@@ -59,37 +59,37 @@ class ApprovalListTest {
 
         // 기안자 -> 결재자1(현재 차례) -> 결재자2(대기)
         draft();
-        activeDocId = jpaApprovalService.getApprovalList(search("DRAFT"), drafter, pageable)
+        activeDocId = jpaApprovalService.getApprovalList(search("DRAFT"), drafter.getLoginId(), pageable)
                 .getContent().get(0).getId();
     }
 
     @Test
     public void 결재대기함은_현재_내_차례인_문서만_조회() {
-        assertThat(ids(jpaApprovalService.getApprovalList(search("TODO"), approver1, pageable).getContent()))
+        assertThat(ids(jpaApprovalService.getApprovalList(search("TODO"), approver1.getLoginId(), pageable).getContent()))
                 .containsExactly(activeDocId);
 
         // 기안자, 아직 차례가 아닌 결재자의 결재대기함에는 나오지 않음
-        assertThat(jpaApprovalService.getApprovalList(search("TODO"), drafter, pageable).getContent()).isEmpty();
-        assertThat(jpaApprovalService.getApprovalList(search("TODO"), approver2, pageable).getContent()).isEmpty();
+        assertThat(jpaApprovalService.getApprovalList(search("TODO"), drafter.getLoginId(), pageable).getContent()).isEmpty();
+        assertThat(jpaApprovalService.getApprovalList(search("TODO"), approver2.getLoginId(), pageable).getContent()).isEmpty();
     }
 
     @Test
     public void 기안함은_내가_기안한_진행문서만_조회() {
-        assertThat(ids(jpaApprovalService.getApprovalList(search("DRAFT"), drafter, pageable).getContent()))
+        assertThat(ids(jpaApprovalService.getApprovalList(search("DRAFT"), drafter.getLoginId(), pageable).getContent()))
                 .containsExactly(activeDocId);
 
-        assertThat(jpaApprovalService.getApprovalList(search("DRAFT"), approver1, pageable).getContent()).isEmpty();
+        assertThat(jpaApprovalService.getApprovalList(search("DRAFT"), approver1.getLoginId(), pageable).getContent()).isEmpty();
     }
 
     @Test
     public void 조회타입이_없으면_결재대기함으로_조회() {
-        assertThat(ids(jpaApprovalService.getApprovalList(search(null), approver1, pageable).getContent()))
+        assertThat(ids(jpaApprovalService.getApprovalList(search(null), approver1.getLoginId(), pageable).getContent()))
                 .containsExactly(activeDocId);
     }
 
     @Test
     public void 지원하지_않는_조회타입은_예외() {
-        assertThatThrownBy(() -> jpaApprovalService.getApprovalList(search("DEPT"), approver1, pageable))
+        assertThatThrownBy(() -> jpaApprovalService.getApprovalList(search("DEPT"), approver1.getLoginId(), pageable))
                 .isInstanceOf(ApprovalInvalidTypeException.class);
     }
 
@@ -124,7 +124,7 @@ class ApprovalListTest {
                 createLine(2, approver1, "02"),
                 createLine(3, approver2, "02")
         ));
-        jpaApprovalService.draft(dto, drafter);
+        jpaApprovalService.draft(dto, drafter.getLoginId());
     }
 
     private ApproverInfoDTO createLine(int stepSeq, UserMaster user, String approveType) {

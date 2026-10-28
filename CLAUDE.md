@@ -34,9 +34,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `ApprovalServiceImpl`, `ApproveAction`, `RejectAction`, `UserServiceImpl`, `StatusMap`/`EndStatusMap`, `JpaApprovalServiceTest`는 **전체가 주석 처리된 레거시**다. `mapper/*.java`와 `resources/mapper/*.xml`이 남아 있지만 `application.yaml`의 mybatis 설정은 주석 처리되어 있다.
 - 새 작업은 JPA 쪽에 한다. 레거시 코드는 참고용이다.
 
-### 인증
-- `SecurityConfig`는 모든 요청을 `permitAll`로 열어 두고 CSRF를 끈 상태다. 실제 인증은 **HttpSession**으로 한다. `AuthController`가 로그인 시 `session.setAttribute("loginUser", UserMaster)`로 저장하고, 각 컨트롤러가 `session.getAttribute("loginUser")`로 꺼낸다(`ApprovalController.getLoginUser`, 없으면 401).
-- 세션의 `UserMaster`는 detached 상태라서 서비스에서 `userRepository.findByLoginId(...)`로 다시 조회한 뒤 사용한다.
+### 인증 (Spring Security, 세션 기반)
+- `SecurityConfig`: `POST /api/users`, `POST /api/auth/login`, Swagger(`/swagger-ui/**`, `/v3/api-docs/**`), `/error`만 `permitAll`이고 나머지는 `authenticated()`다. formLogin, httpBasic, 기본 logout은 끈다. CSRF는 아직 꺼져 있다(세션 쿠키 인증이라 별도 결정 필요).
+- 로그인: `AuthController`가 `AuthenticationManager`로 인증한다(`LoginUserDetailsService` + BCrypt). 기존 세션이 있으면 `changeSessionId()`로 세션 고정을 막고, `SecurityContext`를 `HttpSessionSecurityContextRepository`로 세션에 저장한다. 로그아웃은 `SecurityContextLogoutHandler`가 처리한다.
+- 세션에는 엔티티를 넣지 않는다. principal은 `LoginUser`(id, loginId, name)이고, 비밀번호 해시는 인증 직후 `eraseCredentials()`로 지운다. 컨트롤러는 `@AuthenticationPrincipal LoginUser`로 받는다.
+- 서비스는 `loginId`(String)를 받아 필요하면 `userRepository.findByLoginId`로 엔티티를 조회한다.
+- 역할(authorities)은 두지 않는다. 문서 권한(결재선 포함 여부, 현재 결재 차례)은 서비스에서 판단한다. 관리자 기능이 생기면 그때 role을 추가한다.
+- 401과 403 응답: 필터 단계(미인증)는 `SecurityConfig`의 entry point가, 로그인 실패(`BadCredentialsException` 등)는 `GlobalExceptionHandler`가 같은 `ErrorResponse` 형식으로 응답한다. 존재하지 않는 아이디와 틀린 비밀번호는 같은 메시지로 응답한다.
+- 감사 필드(`created_by`)는 `SecurityContextHolder`의 `LoginUser.loginId`를 쓰고, 인증 정보가 없으면 `SYSTEM`을 쓴다.
+- 테스트: `AuthApiTest`.
 
 ### REST API
 | 메서드 / URL | 설명 | 응답 |

@@ -122,7 +122,7 @@ class NormalApprovalOptimisticLockTest {
                 ready.countDown();
                 try {
                     start.await();
-                    jpaApprovalService.doProcess(copyOf(request), approver1);
+                    jpaApprovalService.doProcess(copyOf(request), approver1.getLoginId());
                     successCount.incrementAndGet();
                 } catch (Throwable e) {
                     failureTypes.computeIfAbsent(e.getClass().getSimpleName(), k -> new AtomicInteger())
@@ -184,7 +184,7 @@ class NormalApprovalOptimisticLockTest {
                 createLine(3, approver2, "02")
         ));
 
-        jpaApprovalService.draft(dto, drafter);
+        jpaApprovalService.draft(dto, drafter.getLoginId());
         return dto.getDocId();
     }
 

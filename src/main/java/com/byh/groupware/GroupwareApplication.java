@@ -1,19 +1,16 @@
 package com.byh.groupware;
 
-import com.byh.groupware.domain.user.entity.UserMaster;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.mybatis.spring.annotation.MapperScan;
+import com.byh.groupware.global.security.LoginUser;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @EnableJpaAuditing
 @SpringBootApplication(
@@ -42,27 +39,17 @@ public class GroupwareApplication {
 //        };
 //    }
 
+    // 생성자/수정자(created_by, last_modified_by): 로그인 사용자면 loginId, 아니면(회원가입, 배치 등) SYSTEM
     @Bean
     public AuditorAware<String> auditorProvider() {
         return () -> {
-            // 현재 요청에 대한 속성을 가져옴
-            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            // 현재 요청(Request)이 없으면 에러를 내지 말고 빈 값을 반환함
-            if (attributes == null) {
-                return Optional.empty();
+            if (authentication != null && authentication.getPrincipal() instanceof LoginUser loginUser) {
+                return Optional.of(loginUser.getLoginId());
             }
 
-            HttpServletRequest request = attributes.getRequest();
-            HttpSession session = request.getSession(false);
-
-            if (session != null && session.getAttribute("loginUser") != null) {
-                // 세션에서 로그인한 사용자 ID를 추출 (예시)
-                 UserMaster loginMember = (UserMaster) session.getAttribute("loginUser");
-                 return Optional.of(loginMember.getLoginId());
-            }
-
-            return Optional.of("SYSTEM"); // 로그인 정보가 없으면 시스템으로 기록
+            return Optional.of("SYSTEM");
         };
     }
 }

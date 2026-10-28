@@ -164,7 +164,7 @@ class FinalApprovalDeadlockTest {
                 ready.countDown();
                 try {
                     start.await();
-                    jpaApprovalService.doProcess(request, approver);
+                    jpaApprovalService.doProcess(request, approver.getLoginId());
                     successCount.incrementAndGet();
                 } catch (Throwable e) {
                     synchronized (failures) {
@@ -242,7 +242,7 @@ class FinalApprovalDeadlockTest {
         dto.setDocContent("<p>데드락 테스트 본문</p>");
         dto.setApprovalLines(List.of(drafterLine, approverLine));
 
-        jpaApprovalService.draft(dto, drafter);
+        jpaApprovalService.draft(dto, drafter.getLoginId());
         createdDocIds.add(dto.getDocId());
 
         // draft 내부에서 채번된 문서번호가 DTO에 세팅됨

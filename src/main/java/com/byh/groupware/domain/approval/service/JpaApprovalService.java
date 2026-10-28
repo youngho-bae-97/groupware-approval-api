@@ -70,9 +70,9 @@ public class JpaApprovalService {
      * @return 생성된 문서 마스터 ID (API 의 문서 식별자)
      */
     @Transactional
-    public Long draft(ApprovalDraftRequestDTO approvalDraftRequestDTO, UserMaster loginUser) {
+    public Long draft(ApprovalDraftRequestDTO approvalDraftRequestDTO, String loginId) {
 
-        loginUser = userRepository.findByLoginId(loginUser.getLoginId());
+        UserMaster loginUser = userRepository.findByLoginId(loginId);
 
         Optional<DocForm> docForm = docFormRepository.findById(approvalDraftRequestDTO.getDocFormId());
 
@@ -207,7 +207,7 @@ public class JpaApprovalService {
      * - 진행 문서가 없으면 이미 최종결재되어 완료 테이블로 이관된 문서
      */
     @Transactional
-    public void approve(Long documentMasterId, ApprovalProcessRequestDTO dto, UserMaster loginUser) {
+    public void approve(Long documentMasterId, ApprovalProcessRequestDTO dto, String loginId) {
         if (!documentMasterRepository.existsById(documentMasterId)) {
             throw new ApprovalDocumentNotFoundException("해당 문서를 찾을 수 없습니다. ID: " + documentMasterId);
         }
@@ -219,14 +219,14 @@ public class JpaApprovalService {
         dto.setActiveDocId(activeDocId);
         dto.setApproveType(ApprovalType.APPROVE.name());
 
-        doProcess(dto, loginUser);
+        doProcess(dto, loginId);
     }
 
 
     @Transactional
-    public void doProcess(ApprovalProcessRequestDTO approvalProcessRequestDTO, UserMaster loginUser) {
+    public void doProcess(ApprovalProcessRequestDTO approvalProcessRequestDTO, String loginId) {
 
-        loginUser = userRepository.findByLoginId(loginUser.getLoginId());
+        UserMaster loginUser = userRepository.findByLoginId(loginId);
         ApprovalType type = ApprovalType.valueOf(approvalProcessRequestDTO.getApproveType().toUpperCase());
 
         ApprovalAction action = actionMap.get(type);
@@ -238,16 +238,16 @@ public class JpaApprovalService {
         action.doProcess(approvalProcessRequestDTO,loginUser);
     }
 
-    public Page<ActiveDoc> getApprovalList(ApprovalSearchDTO dto, UserMaster loginUser, Pageable pageable) {
-        dto.setLoginMemId(loginUser.getLoginId());
+    public Page<ActiveDoc> getApprovalList(ApprovalSearchDTO dto, String loginId, Pageable pageable) {
+        dto.setLoginMemId(loginId);
         //dto.setLoginDeptCode(loginUser.getDeptCode());
 
         // 조회 타입이 없으면 결재대기함으로 조회
         String viewType = StringUtils.hasText(dto.getViewType()) ? dto.getViewType().toUpperCase() : "TODO";
 
         Page<ActiveDoc> activeDocs = switch (viewType) {
-            case "TODO" -> activeDocRepository.docToDoList(pageable, loginUser.getLoginId());
-            case "DRAFT" -> activeDocRepository.docDraftList(pageable, loginUser.getLoginId());
+            case "TODO" -> activeDocRepository.docToDoList(pageable, loginId);
+            case "DRAFT" -> activeDocRepository.docDraftList(pageable, loginId);
             default -> throw new ApprovalInvalidTypeException("지원하지 않는 조회 타입입니다: " + viewType);
         };
 

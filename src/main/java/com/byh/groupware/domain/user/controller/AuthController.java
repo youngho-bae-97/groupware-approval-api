@@ -1,47 +1,64 @@
 package com.byh.groupware.domain.user.controller;
 
 import com.byh.groupware.domain.user.dto.UserLoginDTO;
-import com.byh.groupware.domain.user.entity.UserMaster;
-import com.byh.groupware.domain.user.service.JPAUserService;
+import com.byh.groupware.domain.user.dto.UserLoginResponseDTO;
+import com.byh.groupware.global.security.LoginUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Auth", description = "로그인 / 로그아웃 API (세션 기반)")
+@Tag(name = "Auth", description = "로그인 / 로그아웃 API (Spring Security 세션 기반)")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final JPAUserService jpaUserService;
+    private final AuthenticationManager authenticationManager;
 
-    @Operation(summary = "로그인", description = "사용자로부터 받은 비밀번호값을 해싱하여 DB의 해싱값과 비교 / 성공 시 로그인 정보는 세션에 저장")
+    private final SecurityContextRepository securityContextRepository;
+
+    @Operation(summary = "로그인", description = "Spring Security(AuthenticationManager)로 아이디/비밀번호(BCrypt)를 검증하고, 인증 정보를 세션에 저장")
     @PostMapping("/login")
-    public ResponseEntity<UserLoginDTO> login(@RequestBody UserLoginDTO loginDto, HttpServletRequest request) {
-        UserMaster loginUser = jpaUserService.login(loginDto.getMemId(), loginDto.getMemPass());
+    public ResponseEntity<UserLoginResponseDTO> login(@RequestBody UserLoginDTO loginDto,
+                                                      HttpServletRequest request, HttpServletResponse response) {
+        // 실패 시 AuthenticationException -> GlobalExceptionHandler 에서 401
+        Authentication authentication = authenticationManager.authenticate(
+                UsernamePasswordAuthenticationToken.unauthenticated(loginDto.getMemId(), loginDto.getMemPass()));
 
-        // 세션 생성 및 저장
-        HttpSession session = request.getSession();
-        session.setAttribute("loginUser", loginUser);
+        // 세션 고정 공격 방지: 로그인 전 세션이 있으면 세션 ID 를 새로 발급
+        if (request.getSession(false) != null) {
+            request.changeSessionId();
+        }
 
-        return ResponseEntity.ok(new UserLoginDTO(loginUser));
+        // 인증 결과를 SecurityContext 에 담아 세션에 저장 (이후 요청은 세션에서 복원)
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
+        securityContextRepository.saveContext(context, request, response);
+
+        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
+        return ResponseEntity.ok(new UserLoginResponseDTO(loginUser.getLoginId(), loginUser.getName()));
     }
 
-    @Operation(summary = "로그아웃", description = "세션 초기화")
+    @Operation(summary = "로그아웃", description = "세션 무효화 및 SecurityContext 초기화")
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request) {
-        // 세션이 없으면 새로 만들지 않음
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response,
+                                       Authentication authentication) {
+        new SecurityContextLogoutHandler().logout(request, response, authentication);
 
         return ResponseEntity.noContent().build();
     }

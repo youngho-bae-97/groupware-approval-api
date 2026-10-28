@@ -139,7 +139,7 @@ class FinalApprovalPessimisticLockTest {
                 ready.countDown();
                 try {
                     start.await();
-                    jpaApprovalService.doProcess(copyOf(request), approver);
+                    jpaApprovalService.doProcess(copyOf(request), approver.getLoginId());
                     successCount.incrementAndGet();
                 } catch (Throwable e) {
                     failureTypes.computeIfAbsent(e.getClass().getSimpleName(), k -> new AtomicInteger())
@@ -218,7 +218,7 @@ class FinalApprovalPessimisticLockTest {
         finalStarted.countDown();
         Throwable thrown = null;
         try {
-            jpaApprovalService.doProcess(copyOf(request), approver);
+            jpaApprovalService.doProcess(copyOf(request), approver.getLoginId());
         } catch (Throwable e) {
             thrown = e;
             log.info("최종결재 실패 - {}: {}", e.getClass().getSimpleName(), e.getMessage());
@@ -266,7 +266,7 @@ class FinalApprovalPessimisticLockTest {
                 createLine(2, approver, "02")
         ));
 
-        jpaApprovalService.draft(dto, drafter);
+        jpaApprovalService.draft(dto, drafter.getLoginId());
         return dto.getDocId();
     }
 

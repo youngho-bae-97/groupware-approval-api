@@ -4,7 +4,6 @@ import com.byh.groupware.domain.dept.entity.DeptMaster;
 import com.byh.groupware.domain.dept.repository.DeptRepository;
 import com.byh.groupware.domain.user.dto.UserRegisterDTO;
 import com.byh.groupware.domain.user.entity.UserMaster;
-import com.byh.groupware.domain.user.exception.InvalidLoginException;
 import com.byh.groupware.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -35,17 +34,5 @@ public class JPAUserService {
         userRepository.save(user);
 
 
-    }
-
-    public UserMaster login(String memId, String rawPass) {
-
-
-        UserMaster user = userRepository.findByLoginId(memId);
-        if(user == null || !passwordEncoder.matches(rawPass, user.getMemPass())){
-            throw new InvalidLoginException("아이디 또는 비밀번호가 일치하지 않습니다.");
-        }
-
-        user.cleanMemPass();
-        return user;
     }
 }
